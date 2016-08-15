@@ -101,7 +101,7 @@ Content-Type: application/json
   "url":"http://google.com",
   "width":1000,
   "height":2000,
-  "fileName":"google.png"
+  "fileName":"google.png",
   "clipArea": { 
     "x": 100,
     "y": 100,
@@ -143,7 +143,7 @@ Content-Type: application/json
   "url":"http://google.com",
   "width":1000,
   "height":2000,
-  "fileName":"google.pdf"
+  "fileName":"google.pdf",
   "pdfOptions": {
     "landscape": true, 
     "printBackground": true,
