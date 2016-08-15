@@ -38,7 +38,7 @@ sudo docker run -d --restart=on-failure:3 -p <local-machine-port>:80 --name <arb
 
 # Installation without Docker
 
-### Prerequisites
+### Prerequisites (only tested on OS X 10.10 and Ubuntu 16.04 LTS)
 
 - NodeJS v4.4.4 LTS or higher
 - NPM v2.15.1 or higher
@@ -64,7 +64,7 @@ npm start
 #### Headlessly on a remote server (assuming you have installed Xvfb)
 You can inspect start.sh in the repo to see how it sets up the virtual frame buffer and starts the server. Check the included Dockerfile to see what packages are required to run headlessly in an Ubuntu 16.04 LTS environment
 ```
-./start.sh 
+chmod +x start.sh && ./start.sh 
 ```
 
 # Usage
