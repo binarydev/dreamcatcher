@@ -41,7 +41,9 @@ The microservice exposes a very simple API with 2 endpoints
 ### PNG Export
 
 **Endpoint:** /export/png
+
 **Parameters:** JSON request body with parameters (see below for options)
+
 **Returns:** Binary image data that can be saved directly into a file
 
 #### Options
@@ -80,7 +82,9 @@ Content-Type: application/json
 ### PDF Export
 
 **Endpoint:** /export/pdf
+
 **Parameters:** JSON request body with parameters (see below for options)
+
 **Returns:** Binary PDF data that can be saved directly into a file
 
 #### Options
