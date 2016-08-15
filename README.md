@@ -8,7 +8,7 @@ sudo docker build -t dreamcatcher_exporter .
 sudo docker run -d -p <local-machine-port>:80 --name dreamcatcher_container dreamcatcher_exporter
 ```
 
-- Example Requests (using local ports 8080 as the local-machine-port
+- Example Requests (using local port 8080 as the local-machine-port)
 ```
 POST /export/png HTTP/1.1
 Host: localhost:<local-machine-port>
