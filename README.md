@@ -2,6 +2,8 @@
 
 Microservice providing a lightweight API for generating PNG and PDF representations of a web page. Powered by [Node](https://nodejs.org/en/), [Express](https://expressjs.com/), [Electron](http://electron.atom.io/), and [Nightmare](http://www.nightmarejs.org/)
 
+Includes a Dockerfile for running the microservice in an easy, headless, and isolated manner
+
 # Installation with Docker
 
 ### Step 1: Acquire the image
@@ -33,6 +35,37 @@ sudo docker run -d --restart=on-failure:3 -p <local-machine-port>:80 --name <arb
   * **--restart=on-failure:3** If the main process exits with an error code, attempt to restart the container up to 3 times before aborting
   * **-p** Map a port on the host machine to the container's port 80, where the API server is listening
   * **--name** Give the container a name that you will use when referring to it for management
+
+# Installation without Docker
+
+### Prerequisites
+
+- NodeJS v4.4.4 LTS or higher
+- NPM v2.15.1 or higher
+- Xvfb (optional on localhost, but mandatory on servers to run headlessly)
+
+### Step 1: Clone/download the repo
+
+```
+git clone https://github.com/binarydev/dreamcatcher.git
+```
+
+### Step 2: Install necessary packages
+```
+npm install
+```
+
+### Step 3: Start microservice
+#### Locally:
+```
+npm start
+```
+
+#### Headlessly on a remote server (assuming you have installed Xvfb)
+You can inspect start.sh in the repo to see how it sets up the virtual frame buffer and starts the server
+```
+./start.sh 
+```
 
 # Usage
 
