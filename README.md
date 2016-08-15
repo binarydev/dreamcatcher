@@ -5,16 +5,14 @@ sudo docker build -t dreamcatcher_exporter .
 
 - Create a New Container With the Image
 ```
-sudo docker run -d -p 8080:80 --name dreamcatcher dreamcatcher_exporter
+sudo docker run -d -p <local-machine-port>:80 --name dreamcatcher_container dreamcatcher_exporter
 ```
 
-- Example Requests
+- Example Requests (using local ports 8080 as in 
 ```
 POST /export/png HTTP/1.1
-Host: localhost:8080
+Host: localhost:<local-machine-port>
 Content-Type: application/json
-Cache-Control: no-cache
-Postman-Token: a9d6c445-1687-76b1-541c-d27d961e8aca
 
 { 
 "url":"http://google.com",
@@ -25,10 +23,8 @@ Postman-Token: a9d6c445-1687-76b1-541c-d27d961e8aca
 ```
 ```
 POST /export/pdf HTTP/1.1
-Host: localhost:8080
+Host: localhost:<local-machine-port>
 Content-Type: application/json
-Cache-Control: no-cache
-Postman-Token: a9d6c445-1687-76b1-541c-d27d961e8aca
 
 { 
 "url":"http://google.com",
