@@ -8,14 +8,16 @@ var _ = require('underscore');
 var app = express();
 
 var pdfDefaults = {
+  marginsType: 0,
   landscape: true, 
   printBackground: true,
-  pageSize: "Letter"
+  pageSize: "Letter",
+  printSelectionOnly: false
 };
 
 var responseHeaderDefaults = function(fileName){
   return {
-    'Content-Disposition': 'attachment; filename=' + fileName,
+    'Content-Disposition': 'attachment;filename="' + fileName + '"',
     'Transfer-Encoding': 'binary'
   };
 }
@@ -34,9 +36,8 @@ function generateDownloadData(opts, callback){
 
   if(opts.type === "pdf"){
     dataGenerationChain = dataGenerationChain.pdf(undefined, opts.pdfOptions);
-  }
-  else{
-    dataGenerationChain = dataGenerationChain.screenshot(); 
+  }else{
+    dataGenerationChain = dataGenerationChain.screenshot(undefined, opts.pngClipArea); 
   }
 
   dataGenerationChain.run(callback).end();
@@ -68,7 +69,8 @@ app.post("/export/png", function(req,res) {
       type: "png",
       url: req.body.url,
       width: req.body.width,
-      height: req.body.height
+      height: req.body.height,
+      pngClipArea: req.body.clipArea,
     }, function(err,fileData) {
       var payload = err || fileData;
       if(!err){
@@ -83,7 +85,7 @@ var server = app.listen(80, function () {
     var host = server.address().address;
     var port = server.address().port;
 
-    console.log('Example app listening at http://%s:%s', host, port);
+    console.log('Dreamcatcher microservice listening at http://%s:%s', host, port);
 });
 
 
