@@ -71,7 +71,7 @@ chmod +x start.sh && ./start.sh
 
 After using the ```sudo docker run``` command above, the container will have automatically started and is ready for use.
 
-After a cold boot or a restart, be sure to run ```sudo docker start <arbitrary-container-name>``` where "<arbitrary-container-name>" is the name you entered when first creating the container. This will kickstart the container in the background so it's ready to process any of your requests.
+After a cold boot or a restart, be sure to run ```sudo docker start <arbitrary-container-name>``` where ```<arbitrary-container-name>``` is the name you entered when first creating the container. This will kickstart the container in the background so it's ready to process any of your requests.
 
 The microservice exposes a very simple API with 2 endpoints:
 
