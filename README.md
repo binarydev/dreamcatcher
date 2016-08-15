@@ -62,7 +62,7 @@ npm start
 ```
 
 #### Headlessly on a remote server (assuming you have installed Xvfb)
-You can inspect start.sh in the repo to see how it sets up the virtual frame buffer and starts the server
+You can inspect start.sh in the repo to see how it sets up the virtual frame buffer and starts the server. Check the included Dockerfile to see what packages are required to run headlessly in an Ubuntu 16.04 LTS environment
 ```
 ./start.sh 
 ```
