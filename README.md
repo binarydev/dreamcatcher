@@ -1,35 +1,117 @@
-- Build Local Docker Image
+# Description
+
+Microservice providing a lightweight API for generating PNG and PDF representations of a web page. Powered by [Node](https://nodejs.org/en/), [Express](https://expressjs.com/), [Electron](http://electron.atom.io/), and [Nightmare](http://www.nightmarejs.org/)
+
+# Installation with Docker
+
+### Step 1: Acquire the image
+
+- Option 1: Pull from Docker Hub
 ```
-sudo docker build -t dreamcatcher_exporter .
+sudo docker pull binarydev/dreamcatcher:latest
 ```
+
+- Option 2: Build Local Docker Image
+```
+sudo docker build -t <local-arbitrary-image-name> .
+```
+* Arguments:
+  * **Local arbitrary image name:** Arbitrary name that will be used in step 2 for creating a Docker container
+
+### Step 2: 
 
 - Create a New Container With the Image
 ```
-sudo docker run -d -p <local-machine-port>:80 --name dreamcatcher_container dreamcatcher_exporter
+sudo docker run -d --restart=on-failure:3 -p <local-machine-port>:80 --name <arbitrary-container-name> <local-arbitrary-image-name>
 ```
+* Arguments:
+  * **Local machine port:** Arbitrary local port that will be forwarded to the exposed port 80 within the container
+  * **Arbitrary container name:** Arbitrary name that will be assigned to the container for command reference and management
+  * **Local arbitrary image name:** If you followed option 1 in step 1, enter "binarydev/dreamcatcher" here. If you followed option 2, use the arbitrary name you assigned in that step.
+* Flags explained:
+  * **-d** Run the container in detached mode, so that when the main process (the Express API server) exits, the container stops as well
+  * **--restart=on-failure:3** If the main process exits with an error code, attempt to restart the container up to 3 times before aborting
+  * **-p** Map a port on the host machine to the container's port 80, where the API server is listening
+  * **--name** Give the container a name that you will use when referring to it for management
 
-- Example Requests (using local port 8080 as the local-machine-port)
+# Usage
+
+The microservice exposes a very simple API with 2 endpoints
+
+### PNG Export
+
+**Endpoint:** /export/png
+**Parameters:** JSON request body with parameters (see below for options)
+**Returns:** Binary image data that can be saved directly into a file
+
+#### Options
+
+- **url:** STRING - Target URL that you wish to export
+- **width:** INTEGER - Width of browser viewport
+- **height:** INTEGER - Height of browser viewport
+- **fileName:** STRING - Name of the file as it should appear in the download
+- **clipArea:** OBJECT - Define a specific area of the page to be captured for the PNG. If omitted, the entire visible area is captured
+  - **x:** INTEGER
+  - **y:** INTEGER
+  - **width:** INTEGER
+  - **height:** INTEGER
+
+#### Example
+
 ```
-POST /export/png HTTP/1.1
-Host: localhost:<local-machine-port>
+POST http://localhost:8080/export/png
 Content-Type: application/json
 
 { 
-"url":"http://google.com",
-"width":1000,
-"height":2000,
-"fileName":"IamHere.png"
+  "url":"http://google.com",
+  "width":1000,
+  "height":2000,
+  "fileName":"google.png"
+  "clipArea": { 
+    "x": 100,
+    "y": 100,
+    "width": 150,
+    "height": 200
+  }
 }
 ```
+
+
+### PDF Export
+
+**Endpoint:** /export/pdf
+**Parameters:** JSON request body with parameters (see below for options)
+**Returns:** Binary PDF data that can be saved directly into a file
+
+#### Options
+
+- **url:** STRING - Target URL that you wish to export
+- **width:** INTEGER - Width of browser viewport
+- **height:** INTEGER - Height of browser viewport
+- **fileName:** STRING - Name of the file as it should appear in the download
+- **pdfOptions:** OBJECT - Same options as Electron's printToPDF function [found here](https://github.com/electron/electron/blob/v0.35.2/docs/api/web-contents.md#webcontentsprinttopdfoptions-callback)
+  - **marginsType:** INTEGER - Specify the type of margins to use (0 - default, 1 - none, 2 - minimum)
+  - **landscape:** BOOLEAN - Save PDF in Landscape (true - default) or Portrait (false) orientation
+  - **pageSize:** STRING - Specify page size of the generated PDF (default: "Letter", other options include A3, A4, Legal, Tabloid)
+  - **printBackground:** BOOLEAN - Include background graphics and colors (default: true)
+  - **printSelectionOnly:** BOOLEAN - Whether to print selection only (default: false)
+
+#### Example
+
 ```
-POST /export/pdf HTTP/1.1
-Host: localhost:<local-machine-port>
+POST http://localhost:8080/export/pdf
 Content-Type: application/json
 
 { 
-"url":"http://google.com",
-"width":1000,
-"height":2000,
-"fileName":"IamHere.pdf"
+  "url":"http://google.com",
+  "width":1000,
+  "height":2000,
+  "fileName":"google.pdf"
+  "pdfOptions": {
+    "landscape": true, 
+    "printBackground": true,
+    "pageSize": "Letter",
+    "printSelectionOnly": false
+  }
 }
 ```
