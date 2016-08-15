@@ -73,7 +73,9 @@ After using the ```sudo docker run``` command above, the container will have aut
 
 After a cold boot or a restart, be sure to run ```sudo docker start <arbitrary-container-name>``` where ```<arbitrary-container-name>``` is the name you entered when first creating the container. This will kickstart the container in the background so it's ready to process any of your requests.
 
-The microservice exposes a very simple API with 2 endpoints:
+When trying to access your localhost, such as when running a local dev server that you would like Dreamcatcher to hit for export testing, you should use your machine's external facing IP address. As a result, a typical URL of http://localhost:3000 for a Rails server would become http://<EXTERNAL-IP-ADDRESS>:3000 when sending it to the Dreamcatcher server. This is because the default Docker network stack designates your machine as a gateway, and not as a host with exposed ports for access via the visible Gateway IP.
+
+The Dreamcatcher microservice itself exposes a very simple API with 2 endpoints:
 
 ### PNG Export
 
