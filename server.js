@@ -30,7 +30,7 @@ app.use(cookieParser());
 function generateDownloadData(opts, callback){
   var Nightmare = require('nightmare');
   var dataGenerationChain = new Nightmare()
-    .viewport(opts.height, opts.width)
+    .viewport(opts.width, opts.height)
     .goto(opts.url)
     .wait();
 
