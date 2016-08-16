@@ -2,7 +2,7 @@
 
 Microservice providing a lightweight API for generating PNG and PDF representations of a web page. Powered by [Node](https://nodejs.org/en/), [Express](https://expressjs.com/), [Electron](http://electron.atom.io/), and [Nightmare](http://www.nightmarejs.org/)
 
-Includes a Dockerfile for running the microservice in an easy, headless, and isolated manner
+Includes a Dockerfile for running the microservice in an easy, headless, and isolated manner. The image uses the binarydev/docker-ubuntu-with-xvfb:latest base image, which can be recreated from [this Dockerfile](https://github.com/binarydev/docker-ubuntu-with-xvfb).
 
 # Installation with Docker
 
