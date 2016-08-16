@@ -1,7 +1,7 @@
 {
   "name": "Dreamcatcher",
   "description": "Dreamcatcher - PNG/PDF exporter using NightmareJS",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "scripts": {
     "start": "node server.js"
