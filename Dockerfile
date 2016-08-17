@@ -1,7 +1,7 @@
 # Use Ubuntu 16.04 LTS server image as the base
 FROM binarydev/docker-ubuntu-with-xvfb:latest
 
-EXPOSE 8080
+EXPOSE 80
 
 ENV NVM_DIR /root/.nvm
 ENV NODE_VERSION 4.4.4
