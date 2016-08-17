@@ -4,6 +4,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var _ = require('underscore');
+var Nightmare = require('nightmare');
 
 var app = express();
 
@@ -28,7 +29,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 function generateDownloadData(opts, callback){
-  var Nightmare = require('nightmare');
   var dataGenerationChain = new Nightmare()
     .viewport(opts.width, opts.height)
     .goto(opts.url)
@@ -40,7 +40,7 @@ function generateDownloadData(opts, callback){
     dataGenerationChain = dataGenerationChain.screenshot(undefined, opts.pngClipArea); 
   }
 
-  dataGenerationChain.run(callback).end();
+  dataGenerationChain.run(callback).then(function(dataGenerationChain){ dataGenerationChain.end(); });
 }
 
 app.post("/export/pdf", function(req,res) {
