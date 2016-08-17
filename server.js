@@ -36,19 +36,34 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(allowCrossDomain);
 
-function generateDownloadData(opts, callback){
-  var dataGenerationChain = new Nightmare()
+function generateDownloadData(opts, nightmare, callback) {
+  var dataGenerationChain = nightmare
     .viewport(opts.width, opts.height)
     .goto(opts.url)
+    .evaluate(function () {
+      var s = document.styleSheets[0];
+      s.insertRule('::-webkit-scrollbar { display: none; }');
+    })
     .wait();
 
   if(opts.type === "pdf"){
     dataGenerationChain = dataGenerationChain.pdf(undefined, opts.pdfOptions);
-  }else{
+  } else {
     dataGenerationChain = dataGenerationChain.screenshot(undefined, opts.pngClipArea); 
   }
-
   dataGenerationChain.run(callback).then(function(dataGenerationChain){ dataGenerationChain.end(); });
+}
+
+function findElementSize (downloadOptions, nightmare, responseCallback, generateDownloadData) {
+  nightmare
+    .goto(downloadOptions.url)
+    .wait()
+    .evaluate(function () {
+      return { width: document.querySelector("body").offsetWidth, height: document.querySelector("body").offsetHeight };
+    })
+    .then(function (dimensions) {
+      generateDownloadData(_.extend(downloadOptions, dimensions), nightmare, responseCallback)
+    })
 }
 
 app.post("/export/pdf", function(req,res) {
@@ -71,22 +86,31 @@ app.post("/export/pdf", function(req,res) {
 
 });
 
-app.post("/export/png", function(req,res) {
+app.post("/export/png", function(req, res) {
+  var nightmare = new Nightmare({ frame: false, useContentSize: true });
+  
+  var downloadOptions = {
+    type: "png",
+    url: req.body.url,
+    width: req.body.width,
+    height: req.body.height,
+    pngClipArea: req.body.clipArea,
+  };
 
-  var fileDataResponse = generateDownloadData({
-      type: "png",
-      url: req.body.url,
-      width: req.body.width,
-      height: req.body.height,
-      pngClipArea: req.body.clipArea,
-    }, function(err,fileData) {
-      var payload = err || fileData;
-      if(!err){
-        var headers = _.extend( responseHeaderDefaults(req.body.fileName) , { 'Content-Type': 'image/png' } );
-        res.set(headers);
-      }
-      res.send(payload);
-    });
+  var responseCallback = function(err, fileData) {
+    var payload = err || fileData;
+    if(!err){
+      var headers = _.extend( responseHeaderDefaults(req.body.fileName) , { 'Content-Type': 'image/png' } );
+      res.set(headers);
+    }
+    res.send(payload);
+  };
+
+  if (req.body.width && req.body.height) {
+    generateDownloadData(downloadOptions, nightmare, responseCallback);
+  } else {
+    findElementSize(downloadOptions, nightmare, responseCallback, generateDownloadData);
+  }
 });
 
 var server = app.listen(80, function () {
@@ -95,5 +119,3 @@ var server = app.listen(80, function () {
 
     console.log('Dreamcatcher microservice listening at http://%s:%s', host, port);
 });
-
-

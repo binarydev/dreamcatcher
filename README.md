@@ -94,8 +94,8 @@ The Dreamcatcher microservice itself exposes a very simple API with 2 endpoints:
 - **clipArea:** OBJECT - Define a specific area of the page to be captured for the PNG. If omitted, the entire visible area is captured
   - **x:** INTEGER
   - **y:** INTEGER
-  - **width:** INTEGER
-  - **height:** INTEGER
+  - **width:** INTEGER - Optional Argument, will use body.offsetWidth if not supplied
+  - **height:** INTEGER - Optional Argument, will use body.offsetHeight if not supplied
 
 #### Example
 
