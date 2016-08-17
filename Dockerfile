@@ -6,6 +6,10 @@ EXPOSE 8080
 ENV NVM_DIR /root/.nvm
 ENV NODE_VERSION 4.4.4
 
+COPY server.js package.json start.sh /app/
+
+WORKDIR /app
+
 # INSTALL NVM and NODE 4.4.4 LTS - Since each RUN executes within its own image, 
 # this all needs to happen within the same image to maintain ENV vars
 RUN git clone https://github.com/creationix/nvm.git $NVM_DIR && \
@@ -13,14 +17,12 @@ RUN git clone https://github.com/creationix/nvm.git $NVM_DIR && \
     git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin` && \
     . "$NVM_DIR/nvm.sh" && \
     nvm install $NODE_VERSION && \
-    npm install && \
-    echo "export NVM_DIR=\"/root/.nvm\" \n \n [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\"" >> "/root/.bashrc"
+    echo "export NVM_DIR=\"/root/.nvm\" \n \n [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\"" >> "/root/.bashrc" && \
+    cd /app && \
+    npm install
 
 ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
-ADD . /app
-
-WORKDIR /app
 
 RUN chmod a+x start.sh
 
