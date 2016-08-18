@@ -75,7 +75,9 @@ app.post("/export/pdf", function(req,res) {
       width: req.body.width,
       height: req.body.height,
       pdfOptions: pdfOptions
-    }, function(err,fileData) {
+    },
+    new Nightmare({ frame: false, useContentSize: true }),
+    function(err,fileData) {
       var payload = err || fileData;
       if(!err){
         var headers = _.extend( responseHeaderDefaults(req.body.fileName) , { 'Content-Type': 'application/pdf' } );
