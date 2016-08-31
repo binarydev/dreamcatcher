@@ -13,8 +13,10 @@ Includes a Dockerfile for running the microservice in an easy, headless, and iso
 sudo docker pull binarydev/dreamcatcher:latest
 ```
 
-- Option 2: Build Local Docker Image
+- Option 2: Clone Repo and Build Local Docker Image
 ```
+git clone https://github.com/binarydev/dreamcatcher.git
+cd dreamcatcher
 sudo docker build -t <local-arbitrary-image-name> .
 ```
 * Arguments:
