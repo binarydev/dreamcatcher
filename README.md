@@ -91,6 +91,7 @@ The Dreamcatcher microservice itself exposes a very simple API with 2 endpoints:
 - **width:** INTEGER - Width of browser viewport
 - **height:** INTEGER - Height of browser viewport
 - **fileName:** STRING - Name of the file as it should appear in the download
+- **selector:** STRING - The CSS selector you want to use for querying the view dimensions
 - **clipArea:** OBJECT - Define a specific area of the page to be captured for the PNG. If omitted, the entire visible area is captured
   - **x:** INTEGER
   - **y:** INTEGER
@@ -132,6 +133,7 @@ Content-Type: application/json
 - **width:** INTEGER - Width of browser viewport
 - **height:** INTEGER - Height of browser viewport
 - **fileName:** STRING - Name of the file as it should appear in the download
+- **selector:** STRING - The CSS selector you want to use for querying the view dimensions
 - **pdfOptions:** OBJECT - Same options as Electron's printToPDF function [found here](https://github.com/electron/electron/blob/v0.35.2/docs/api/web-contents.md#webcontentsprinttopdfoptions-callback)
   - **marginsType:** INTEGER - Specify the type of margins to use (0 - default, 1 - none, 2 - minimum)
   - **landscape:** BOOLEAN - Save PDF in Landscape (true - default) or Portrait (false) orientation
@@ -157,4 +159,12 @@ Content-Type: application/json
     "printSelectionOnly": false
   }
 }
+```
+
+**NOTE:** You are responsible for disabling scrollbars through CSS on the page you are rendering. This can be done by placing this style in your `<head>`:
+
+```
+<style>
+  ::-webkit-scrollbar { display: none; }
+</style>
 ```

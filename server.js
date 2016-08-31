@@ -40,11 +40,7 @@ function generateDownloadData(opts, nightmare, callback) {
   var dataGenerationChain = nightmare
     .viewport(opts.width, opts.height)
     .goto(opts.url)
-    .wait("body")
-    .evaluate(function () {
-      var s = document.styleSheets[0];
-      s.insertRule('::-webkit-scrollbar { display: none; }');
-    });
+    .wait("body");
 
   if(opts.type === "pdf"){
     dataGenerationChain = dataGenerationChain.pdf(undefined, opts.pdfOptions);
@@ -55,12 +51,17 @@ function generateDownloadData(opts, nightmare, callback) {
 }
 
 function findElementSize (downloadOptions, nightmare, responseCallback, generateDownloadData) {
+  var selector = downloadOptions.selector || "body";
+
   nightmare
     .goto(downloadOptions.url)
     .wait("body")
-    .evaluate(function () {
-      return { width: document.querySelector("body").offsetWidth, height: document.querySelector("body").offsetHeight };
-    })
+    .evaluate(function (selector) {
+      return { 
+        width: document.querySelector(selector).offsetWidth, 
+        height: document.querySelector(selector).offsetHeight 
+      };
+    }, selector)
     .then(function (dimensions) {
       generateDownloadData(_.extend(downloadOptions, dimensions), nightmare, responseCallback)
     })
@@ -74,6 +75,7 @@ app.post("/export/pdf", function(req,res) {
       url: req.body.url,
       width: req.body.width,
       height: req.body.height,
+      selector: req.body.selector,
       pdfOptions: pdfOptions
     },
     new Nightmare({ frame: false, useContentSize: true }),
@@ -96,6 +98,7 @@ app.post("/export/png", function(req, res) {
     url: req.body.url,
     width: req.body.width,
     height: req.body.height,
+    selector: req.body.selector,
     pngClipArea: req.body.clipArea,
   };
 
