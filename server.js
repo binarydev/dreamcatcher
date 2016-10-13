@@ -67,6 +67,11 @@ function findElementSize (downloadOptions, nightmare, responseCallback, generate
     })
 }
 
+app.get("/status", function(req,res){
+  res.type("text/plain");
+  res.status(200).send("I like Kit-Kat, unless I'm with four or more people.");
+});
+
 app.post("/export/pdf", function(req,res) {
   var payload, pdfOptions = _.extend( pdfDefaults , req.body.pdfOptions );
 
