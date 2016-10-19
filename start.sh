@@ -9,4 +9,4 @@ Xvfb -ac -screen scrn 1280x960x24 :9.0 &
 export DISPLAY=:9.0
 
 # Start the Node-Express microservice
-npm start
+DEBUG=* npm start
