@@ -47,7 +47,7 @@ function generateDownloadData(opts, nightmare, callback) {
   } else {
     dataGenerationChain = dataGenerationChain.screenshot(undefined, opts.pngClipArea); 
   }
-  dataGenerationChain.run(callback).then(function(dataGenerationChain){ dataGenerationChain.end().then(function(){}); });
+  dataGenerationChain.run(callback).end();
 }
 
 function findElementSize (downloadOptions, nightmare, responseCallback, generateDownloadData) {
@@ -123,7 +123,7 @@ app.post("/export/png", function(req, res) {
   }
 });
 
-var server = app.listen(80, function () {
+var server = app.listen(8182, function () {
     var host = server.address().address;
     var port = server.address().port;
 
