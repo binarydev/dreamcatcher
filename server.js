@@ -47,7 +47,7 @@ function generateDownloadData(opts, nightmare, callback) {
   } else {
     dataGenerationChain = dataGenerationChain.screenshot(undefined, opts.pngClipArea); 
   }
-  dataGenerationChain.run(callback).then(function(dataGenerationChain){ dataGenerationChain.end(); });
+  dataGenerationChain.run(callback).then(function(dataGenerationChain){ dataGenerationChain.end().then(function(){}); });
 }
 
 function findElementSize (downloadOptions, nightmare, responseCallback, generateDownloadData) {
