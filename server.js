@@ -18,7 +18,7 @@ var pdfDefaults = {
 
 var responseHeaderDefaults = function(fileName){
   return {
-    'Content-Disposition': 'attachment;filename="' + fileName + '"',
+    'Content-Disposition': 'attachment',
     'Transfer-Encoding': 'binary'
   };
 }
@@ -87,7 +87,7 @@ app.post("/export/pdf", function(req,res) {
     function(err,fileData) {
       var payload = err || fileData;
       if(!err){
-        var headers = _.extend( responseHeaderDefaults(req.body.fileName) , { 'Content-Type': 'application/pdf' } );
+        var headers = _.extend( responseHeaderDefaults , { 'Content-Type': 'application/pdf' } );
         res.set(headers);
       }
       res.send(payload);
@@ -110,7 +110,7 @@ app.post("/export/png", function(req, res) {
   var responseCallback = function(err, fileData) {
     var payload = err || fileData;
     if(!err){
-      var headers = _.extend( responseHeaderDefaults(req.body.fileName) , { 'Content-Type': 'image/png' } );
+      var headers = _.extend( responseHeaderDefaults, { 'Content-Type': 'image/png' } );
       res.set(headers);
     }
     res.send(payload);
