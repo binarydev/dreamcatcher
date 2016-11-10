@@ -77,7 +77,12 @@ After a cold boot or a restart, be sure to run ```sudo docker start <arbitrary-c
 
 When trying to access your localhost, such as when running a local dev server that you would like Dreamcatcher to hit for export testing, you should use your machine's external facing IP address. As a result, a typical URL of http://localhost:3000 for a Rails server would become http://<EXTERNAL-IP-ADDRESS>:3000 when sending it to the Dreamcatcher server. This is because the default Docker network stack designates your machine as a gateway, and not as a host with exposed ports for access via the visible Gateway IP.
 
-The Dreamcatcher microservice itself exposes a very simple API with 2 endpoints:
+The Dreamcatcher microservice itself exposes a very simple API with 3 endpoints:
+
+### Status Check
+
+**Endpoint:** /status
+**Returns:** Status code 200 OK in the headers and an irrelevant string in the body. This is only meant to be used for service monitoring, so that you can restart the service or trigger alerts if you receive anything other than a 200 OK status code.
 
 ### PNG Export
 
