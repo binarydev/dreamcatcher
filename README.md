@@ -82,6 +82,7 @@ The Dreamcatcher microservice itself exposes a very simple API with 3 endpoints:
 ### Status Check
 
 **Endpoint:** /status
+
 **Returns:** Status code 200 OK in the headers and an irrelevant string in the body. This is only meant to be used for service monitoring, so that you can restart the service or trigger alerts if you receive anything other than a 200 OK status code.
 
 ### PNG Export
