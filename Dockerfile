@@ -4,7 +4,7 @@ FROM binarydev/docker-ubuntu-with-xvfb:latest
 EXPOSE 80
 
 ENV NVM_DIR /root/.nvm
-ENV NODE_VERSION 4.4.4
+ENV NODE_VERSION 6.9.2
 
 COPY server.js package.json start.sh /app/
 

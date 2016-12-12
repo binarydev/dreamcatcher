@@ -40,10 +40,10 @@ sudo docker run -d --restart=on-failure:3 -p <local-machine-port>:80 --name <arb
 
 # Installation without Docker
 
-### Prerequisites (only tested on OS X 10.10 and Ubuntu 16.04 LTS)
+### Prerequisites (only tested on OS X 10.10 and Ubuntu 16.04 LTS and 16.10)
 
-- NodeJS v4.4.4 LTS or higher
-- NPM v2.15.1 or higher
+- NodeJS v6.9.1 LTS or higher
+- NPM v3.10.8 or higher
 - Xvfb (optional on localhost, but mandatory on servers to run headlessly)
 
 ### Step 1: Clone/download the repo
