@@ -100,6 +100,7 @@ The Dreamcatcher microservice itself exposes a very simple API with 3 endpoints:
 - **height:** INTEGER - Height of browser viewport
 - **fileName:** STRING - Name of the file as it should appear in the download
 - **selector:** STRING - The CSS selector you want to use for querying the view dimensions
+- **waitFor:** ARRAY(String selector, Integer time in milliseconds, or Function that can be executed repeatedly until it returns true) - Optional Argument, an array of values that defines what browser should wait for before proceeding to generate the PDF and PNG. By using an array, you can chain wait commands (e.g. wait for #my-id, then wait 5 seconds) (default: null)
 - **clipArea:** OBJECT - Define a specific area of the page to be captured for the PNG. If omitted, the entire visible area is captured
   - **x:** INTEGER
   - **y:** INTEGER
@@ -117,6 +118,7 @@ Content-Type: application/json
   "width":1000,
   "height":2000,
   "fileName":"google.png",
+  "waitFor":[".last-rendered-item", 500],
   "clipArea": { 
     "x": 100,
     "y": 100,
@@ -142,12 +144,13 @@ Content-Type: application/json
 - **height:** INTEGER - Height of browser viewport
 - **fileName:** STRING - Name of the file as it should appear in the download
 - **selector:** STRING - The CSS selector you want to use for querying the view dimensions
+- **waitFor:** ARRAY(String selector, Integer time in milliseconds, or Function that can be executed repeatedly until it returns true) - Optional Argument, an array of values that defines what browser should wait for before proceeding to generate the PDF and PNG. By using an array, you can chain wait commands (e.g. wait for #my-id, then wait 5 seconds) (default: null)
 - **pdfOptions:** OBJECT - Same options as Electron's printToPDF function [found here](https://github.com/electron/electron/blob/v0.35.2/docs/api/web-contents.md#webcontentsprinttopdfoptions-callback)
-  - **marginsType:** INTEGER - Specify the type of margins to use (0 - default, 1 - none, 2 - minimum)
-  - **landscape:** BOOLEAN - Save PDF in Landscape (true - default) or Portrait (false) orientation
-  - **pageSize:** STRING - Specify page size of the generated PDF (default: "Letter", other options include A3, A4, Legal, Tabloid)
-  - **printBackground:** BOOLEAN - Include background graphics and colors (default: true)
-  - **printSelectionOnly:** BOOLEAN - Whether to print selection only (default: false)
+  - **marginsType:** INTEGER - Optional Argument, specify the type of margins to use (0 - default, 1 - none, 2 - minimum)
+  - **landscape:** BOOLEAN - Optional Argument, save PDF in Landscape (true - default) or Portrait (false) orientation
+  - **pageSize:** STRING - Optional Argument, specify page size of the generated PDF (default: "Letter", other options include A3, A4, Legal, Tabloid)
+  - **printBackground:** BOOLEAN - Optional Argument, include background graphics and colors (default: true)
+  - **printSelectionOnly:** BOOLEAN - Optional Argument, whether to print selection only (default: false)
 
 #### Example
 
@@ -160,6 +163,7 @@ Content-Type: application/json
   "width":1000,
   "height":2000,
   "fileName":"google.pdf",
+  "waitFor":[".last-rendered-item", 500],
   "pdfOptions": {
     "landscape": true, 
     "printBackground": true,
