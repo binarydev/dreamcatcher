@@ -41,6 +41,13 @@ function generateDownloadData(opts, nightmare, callback) {
     .viewport(opts.width, opts.height)
     .goto(opts.url)
     .wait("body");
+   
+  if(opts.waitOptions && opts.waitOptions.length > 0){
+    _.each(opts.waitOptions, function(waitForItem){
+      waitVal = parseInt(waitForItem) ? parseInt(waitForItem) : waitForItem;
+      dataGenerationChain = dataGenerationChain.wait(waitVal);
+    });
+  }
 
   if(opts.type === "pdf"){
     dataGenerationChain = dataGenerationChain.pdf(undefined, opts.pdfOptions);
@@ -81,7 +88,8 @@ app.post("/export/pdf", function(req,res) {
       width: req.body.width,
       height: req.body.height,
       selector: req.body.selector,
-      pdfOptions: pdfOptions
+      pdfOptions: pdfOptions,
+      waitOptions: req.body.waitFor
     },
     new Nightmare({ frame: false, useContentSize: true }),
     function(err,fileData) {
@@ -104,6 +112,7 @@ app.post("/export/png", function(req, res) {
     width: req.body.width,
     height: req.body.height,
     selector: req.body.selector,
+    waitOptions: req.body.waitFor,
     pngClipArea: req.body.clipArea,
   };
 
