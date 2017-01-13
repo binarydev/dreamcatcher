@@ -39,8 +39,15 @@ app.use(allowCrossDomain);
 function generateDownloadData(opts, nightmare, callback) {
   var dataGenerationChain = nightmare
     .viewport(opts.width, opts.height)
-    .goto(opts.url)
+    .goto(opts.url, opts.headers)
     .wait("body");
+   
+  if(opts.waitOptions && opts.waitOptions.length > 0){
+    _.each(opts.waitOptions, function(waitForItem){
+      waitVal = parseInt(waitForItem) ? parseInt(waitForItem) : waitForItem;
+      dataGenerationChain = dataGenerationChain.wait(waitVal);
+    });
+  }
 
   if(opts.type === "pdf"){
     dataGenerationChain = dataGenerationChain.pdf(undefined, opts.pdfOptions);
@@ -54,7 +61,7 @@ function findElementSize (downloadOptions, nightmare, responseCallback, generate
   var selector = downloadOptions.selector || "body";
 
   nightmare
-    .goto(downloadOptions.url)
+    .goto(downloadOptions.url, downloadOptions.headers)
     .wait("body")
     .evaluate(function (selector) {
       return { 
@@ -76,24 +83,26 @@ app.post("/export/pdf", function(req,res) {
   var nightmare = new Nightmare({ frame: false, useContentSize: true });
   
   var pdfOptions = _.extend( pdfDefaults , req.body.pdfOptions );
-  
+
   var downloadOptions = {
-    type: "pdf",
-    url: req.body.url,
-    width: req.body.width,
-    height: req.body.height,
-    selector: req.body.selector,
-    pdfOptions: pdfOptions
-  };
+      type: "pdf",
+      url: req.body.url,
+      width: req.body.width,
+      height: req.body.height,
+      selector: req.body.selector,
+      pdfOptions: pdfOptions,
+      waitOptions: req.body.waitFor,
+      headers: req.body.headers,
+    };
   
-  var responseCallback = function(err, fileData) {
-    var payload = err || fileData;
-    if (!err) {
-      var headers = _.extend( responseHeaderDefaults , { 'Content-Type': 'application/pdf' } );
-      res.set(headers);
-    }
-    res.send(payload);
-  };
+    var responseCallback = function(err,fileData) {
+      var payload = err || fileData;
+      if(!err){
+        var headers = _.extend( responseHeaderDefaults , { 'Content-Type': 'application/pdf' } );
+        res.set(headers);
+      }
+      res.send(payload);
+    };
 
   generateDownloadData(downloadOptions, nightmare, responseCallback);
 });
@@ -107,6 +116,7 @@ app.post("/export/png", function(req, res) {
     width: req.body.width,
     height: req.body.height,
     selector: req.body.selector,
+    waitOptions: req.body.waitFor,
     pngClipArea: req.body.clipArea,
   };
 
