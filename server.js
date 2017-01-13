@@ -39,7 +39,7 @@ app.use(allowCrossDomain);
 function generateDownloadData(opts, nightmare, callback) {
   var dataGenerationChain = nightmare
     .viewport(opts.width, opts.height)
-    .goto(opts.url)
+    .goto(opts.url, opts.headers)
     .wait("body");
    
   if(opts.waitOptions && opts.waitOptions.length > 0){
@@ -61,7 +61,7 @@ function findElementSize (downloadOptions, nightmare, responseCallback, generate
   var selector = downloadOptions.selector || "body";
 
   nightmare
-    .goto(downloadOptions.url)
+    .goto(downloadOptions.url, downloadOptions.headers)
     .wait("body")
     .evaluate(function (selector) {
       return { 
@@ -89,7 +89,8 @@ app.post("/export/pdf", function(req,res) {
       height: req.body.height,
       selector: req.body.selector,
       pdfOptions: pdfOptions,
-      waitOptions: req.body.waitFor
+      waitOptions: req.body.waitFor,
+      headers: req.body.headers,
     },
     new Nightmare({ frame: false, useContentSize: true }),
     function(err,fileData) {
