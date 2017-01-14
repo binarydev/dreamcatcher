@@ -80,9 +80,11 @@ app.get("/status", function(req,res){
 });
 
 app.post("/export/pdf", function(req,res) {
-  var payload, pdfOptions = _.extend( pdfDefaults , req.body.pdfOptions );
+  var nightmare = new Nightmare({ frame: false, useContentSize: true });
+  
+  var pdfOptions = _.extend( pdfDefaults , req.body.pdfOptions );
 
-  var fileDataResponse = generateDownloadData({
+  var downloadOptions = {
       type: "pdf",
       url: req.body.url,
       width: req.body.width,
@@ -91,17 +93,18 @@ app.post("/export/pdf", function(req,res) {
       pdfOptions: pdfOptions,
       waitOptions: req.body.waitFor,
       headers: req.body.headers,
-    },
-    new Nightmare({ frame: false, useContentSize: true }),
-    function(err,fileData) {
+    };
+  
+    var responseCallback = function(err,fileData) {
       var payload = err || fileData;
       if(!err){
         var headers = _.extend( responseHeaderDefaults , { 'Content-Type': 'application/pdf' } );
         res.set(headers);
       }
       res.send(payload);
-    });
+    };
 
+  generateDownloadData(downloadOptions, nightmare, responseCallback);
 });
 
 app.post("/export/png", function(req, res) {
