@@ -4,6 +4,8 @@ Microservice providing a lightweight API for generating PNG and PDF representati
 
 Includes a Dockerfile for running the microservice in an easy, headless, and isolated manner. The image uses the binarydev/docker-ubuntu-with-xvfb:latest base image, which can be recreated from [this Dockerfile](https://github.com/binarydev/docker-ubuntu-with-xvfb).
 
+Please note, the server.js file unmounts and deletes /dev/shm in order to replace it with a larger 1GB shared memory mount
+
 # Installation with Docker
 
 ### Step 1: Acquire the image
