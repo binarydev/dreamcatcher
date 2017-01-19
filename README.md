@@ -28,7 +28,7 @@ sudo docker build -t <local-arbitrary-image-name> .
 
 - Create a New Container With the Image
 ```
-sudo docker run -d --restart=on-failure:3 -p <local-machine-port>:80 --name <arbitrary-container-name> <local-arbitrary-image-name>
+sudo docker run -d --restart=on-failure:3 --shm-size=1G -p <local-machine-port>:80 --name <arbitrary-container-name> <local-arbitrary-image-name>
 ```
 * Arguments:
   * **Local machine port:** Arbitrary local port that will be forwarded to the exposed port 80 within the container
@@ -37,6 +37,7 @@ sudo docker run -d --restart=on-failure:3 -p <local-machine-port>:80 --name <arb
 * Flags explained:
   * **-d** Run the container in detached mode, so that when the main process (the Express API server) exits, the container stops as well
   * **--restart=on-failure:3** If the main process exits with an error code, attempt to restart the container up to 3 times before aborting
+  * **--shm-size=1G** Define the amount of shared memory for the container. The Docker default is 64mb, which is too small for rendering PDFs with any reasonable amount of content, since the browser environment renders the PDF into shared memory for generation. We recommend at least 1G (1 gigabyte), but you can tweak this as you see fit for your needs. Alternatively, you can skip this flag and run the container in privileged mode (--privileged) and the start.sh script within it will automatically allocate and mount a 1GB shared memory device
   * **-p** Map a port on the host machine to the container's port 80, where the API server is listening
   * **--name** Give the container a name that you will use when referring to it for management
 
