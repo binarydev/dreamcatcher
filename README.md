@@ -4,7 +4,13 @@ Microservice providing a lightweight API for generating PNG and PDF representati
 
 Includes a Dockerfile for running the microservice in an easy, headless, and isolated manner. The image uses the binarydev/docker-ubuntu-with-xvfb:latest base image, which can be recreated from [this Dockerfile](https://github.com/binarydev/docker-ubuntu-with-xvfb).
 
-Please note, if running in privileged mode with Docker, the server.js file unmounts and deletes /dev/shm in order to replace it with a larger 1GB shared memory mount to ensure PDF rendering is successful at larger file sizes. The same can be accomplished without privileged mode by using the --shm-size flag for Docker's run command (e.g. "--shm-size=1G")
+# NOTES:
+
+## PDF Rendering and Docker Shared Memory Size
+- If running within a Docker container in privileged mode, the container's default process (start.sh) unmounts and deletes /dev/shm in order to replace it with a larger 1GB shared memory mount to ensure PDF rendering is successful at larger file sizes. The same can be accomplished without privileged mode for security purposes by using the --shm-size flag for Docker's run command (e.g. "--shm-size=1G")
+
+## Custom Fonts for Rendering
+- The start.sh bash script checks for an environment variable named $FONT_ZIP_URLS. This should be a string variable in your environment with space-separated URLs of zip files containing your custom fonts. The variable can be set as part of the start.sh call (```FONT_ZIP_URLS="http://url1 http://url2" ./start.sh```) or in your local session using the export command. If you are running this microservice in a Docker container, you can set this environment variable during your docker run command (see Docker installation notes below).
 
 # Installation with Docker
 
@@ -28,7 +34,7 @@ sudo docker build -t <local-arbitrary-image-name> .
 
 - Create a New Container With the Image
 ```
-sudo docker run -d --restart=on-failure:3 --shm-size=1G -p <local-machine-port>:80 --name <arbitrary-container-name> <local-arbitrary-image-name>
+sudo docker run -d --restart=on-failure:3 --shm-size=1G -p <local-machine-port>:80 --env FONT_ZIP_URLS="http://url1 http://url2 http://etc" --name <arbitrary-container-name> <local-arbitrary-image-name>
 ```
 * Arguments:
   * **Local machine port:** Arbitrary local port that will be forwarded to the exposed port 80 within the container
@@ -38,6 +44,7 @@ sudo docker run -d --restart=on-failure:3 --shm-size=1G -p <local-machine-port>:
   * **-d** Run the container in detached mode, so that when the main process (the Express API server) exits, the container stops as well
   * **--restart=on-failure:3** If the main process exits with an error code, attempt to restart the container up to 3 times before aborting
   * **--shm-size=1G** Define the amount of shared memory for the container. The Docker default is 64mb, which is too small for rendering PDFs with any reasonable amount of content, since the browser environment renders the PDF into shared memory for generation. We recommend at least 1G (1 gigabyte), but you can tweak this as you see fit for your needs. Alternatively, you can skip this flag and run the container in privileged mode (--privileged) and the start.sh script within it will automatically allocate and mount a 1GB shared memory device
+  * **--env FONT_ZIP_URLS="http://url1 http://url2 http://etc"** Set a custom environment variable within the container, which in this case is the FONT_ZIP_URLS variable containing a list of space-delimited URLs for zip files containing fonts that the container will fetch and install within the container. Since container file systems are ephemeral, this font installation process will execute every time the container is started as long as this variable is set to anything except an empty string. The STDOUT of the container will show the current state of font installation during start up.
   * **-p** Map a port on the host machine to the container's port 80, where the API server is listening
   * **--name** Give the container a name that you will use when referring to it for management
 
