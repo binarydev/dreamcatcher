@@ -1,6 +1,8 @@
 # Use Ubuntu 16.04 LTS server image as the base
 FROM binarydev/docker-ubuntu-with-xvfb:latest
 
+RUN apt-get install --fix-missing -y unzip
+
 EXPOSE 80
 
 ENV NVM_DIR /root/.nvm
