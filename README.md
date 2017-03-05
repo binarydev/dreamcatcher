@@ -116,6 +116,7 @@ The Dreamcatcher microservice itself exposes a very simple API with 3 endpoints:
   - **y:** INTEGER
   - **width:** INTEGER - Optional Argument, will use body.offsetWidth if not supplied
   - **height:** INTEGER - Optional Argument, will use body.offsetHeight if not supplied
+- **headers:** OBJECT - Optional Argument. Allows you to add cookies for authentication, or any other header your server might need.
 
 #### Example
 
