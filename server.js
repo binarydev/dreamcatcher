@@ -118,6 +118,7 @@ app.post("/export/png", function(req, res) {
     selector: req.body.selector,
     waitOptions: req.body.waitFor,
     pngClipArea: req.body.clipArea,
+    headers: req.body.headers,
   };
 
   var responseCallback = function(err, fileData) {
