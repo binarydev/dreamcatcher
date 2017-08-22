@@ -49,6 +49,10 @@ function generateDownloadData(opts, nightmare, callback) {
     });
   }
 
+  if (opts.boundingRect) {
+    dataGenerationChain.scrollTo(opts.boundingRect.top, opts.boundingRect.left);
+  }
+
   if(opts.type === "pdf"){
     dataGenerationChain = dataGenerationChain.pdf(undefined, opts.pdfOptions);
   } else {
@@ -64,9 +68,13 @@ function findElementSize (downloadOptions, nightmare, responseCallback, generate
     .goto(downloadOptions.url, downloadOptions.headers)
     .wait("body")
     .evaluate(function (selector) {
-      return { 
-        width: document.querySelector(selector).offsetWidth, 
-        height: document.querySelector(selector).offsetHeight 
+      return {
+        width: document.querySelector(selector).offsetWidth,
+        height: document.querySelector(selector).offsetHeight,
+        boundingRect: {
+          top: document.querySelector(selector).getBoundingClientRect().top,
+          left: document.querySelector(selector).getBoundingClientRect().left
+        }
       };
     }, selector)
     .then(function (dimensions) {
