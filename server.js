@@ -40,8 +40,11 @@ function generateDownloadData(opts, nightmare, callback) {
   var dataGenerationChain = nightmare
     .viewport(opts.width, opts.height)
     .goto(opts.url, opts.headers)
-    .wait("body");
-   
+    .wait("body")
+    .evaluate(function () {
+      document.querySelector('body').style.overflow = 'hidden';
+    });
+
   if(opts.waitOptions && opts.waitOptions.length > 0){
     _.each(opts.waitOptions, function(waitForItem){
       waitVal = parseInt(waitForItem) ? parseInt(waitForItem) : waitForItem;
@@ -68,6 +71,7 @@ function findElementSize (downloadOptions, nightmare, responseCallback, generate
     .goto(downloadOptions.url, downloadOptions.headers)
     .wait("body")
     .evaluate(function (selector) {
+      document.querySelector('body').style.overflow = 'hidden';
       return {
         width: document.querySelector(selector).offsetWidth,
         height: document.querySelector(selector).offsetHeight,
