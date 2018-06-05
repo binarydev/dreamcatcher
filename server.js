@@ -5,6 +5,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var _ = require('underscore');
 var Nightmare = require('nightmare');
+var fs = require('fs');
+var crypto = require('crypto');
 
 var app = express();
 
@@ -36,7 +38,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(allowCrossDomain);
 
-function generateDownloadData(opts, nightmare, callback) {
+function generateDownloadData(opts, nightmare, callback) {  
   var dataGenerationChain = nightmare
     .viewport(opts.width, opts.height)
     .goto(opts.url, opts.headers)
@@ -61,9 +63,22 @@ function generateDownloadData(opts, nightmare, callback) {
   dataGenerationChain.run(callback).end();
 }
 
-function findElementSize (downloadOptions, nightmare, responseCallback, generateDownloadData) {
-  var selector = downloadOptions.selector || "body";
+function prepareContentForDownload(opts, callback){
+  if(opts.htmlContent){
+    var htmlContentFilePath = "/tmp/" + md5(opts.htmlContent) + ".html";
+    fs.writeFile(htmlContentFilePath, opts.htmlContent, 'utf8', function(){
+      opts.url = "file://" + htmlContentFilePath;
+      opts.localFileName = htmlContentFilePath;
+      callback && callback();
+    })
 
+  }else{
+    callback && callback();
+  }
+}
+
+function findElementSizeAndDownload (downloadOptions, nightmare, responseCallback) {
+  var selector = downloadOptions.selector || "body";
   nightmare
     .goto(downloadOptions.url, downloadOptions.headers)
     .wait("body")
@@ -82,6 +97,10 @@ function findElementSize (downloadOptions, nightmare, responseCallback, generate
     })
 }
 
+function md5(string) {
+  return crypto.createHash('md5').update(string).digest('hex');
+}
+
 app.get("/status", function(req,res){
   res.type("text/plain");
   res.status(200).send("I like Kit-Kat, unless I'm with four or more people.");
@@ -93,26 +112,33 @@ app.post("/export/pdf", function(req,res) {
   var pdfOptions = _.extend( pdfDefaults , req.body.pdfOptions );
 
   var downloadOptions = {
-      type: "pdf",
-      url: req.body.url,
-      width: req.body.width,
-      height: req.body.height,
-      selector: req.body.selector,
-      pdfOptions: pdfOptions,
-      waitOptions: req.body.waitFor,
-      headers: req.body.headers,
-    };
-  
-    var responseCallback = function(err,fileData) {
-      var payload = err || fileData;
-      if(!err){
-        var headers = _.extend( responseHeaderDefaults , { 'Content-Type': 'application/pdf' } );
-        res.set(headers);
-      }
-      res.send(payload);
-    };
+    type: "pdf",
+    url: req.body.url,
+    width: req.body.width,
+    height: req.body.height,
+    selector: req.body.selector,
+    pdfOptions: pdfOptions,
+    waitOptions: req.body.waitFor,
+    headers: req.body.headers,
+    htmlContent: req.body.htmlContent
+  };
 
-  generateDownloadData(downloadOptions, nightmare, responseCallback);
+  var responseCallback = function(err,fileData) {
+    if(downloadOptions.localFileName){
+      console.log(downloadOptions.localFileName);
+      fs.unlink(downloadOptions.localFileName);
+    }
+    var payload = err || fileData;
+    if(!err){
+      var headers = _.extend( responseHeaderDefaults , { 'Content-Type': 'application/pdf' } );
+      res.set(headers);
+    }
+    res.send(payload);
+  };
+
+  prepareContentForDownload(downloadOptions, function(){
+    generateDownloadData(downloadOptions, nightmare, responseCallback);
+  });
 });
 
 app.post("/export/png", function(req, res) {
@@ -127,9 +153,14 @@ app.post("/export/png", function(req, res) {
     waitOptions: req.body.waitFor,
     pngClipArea: req.body.clipArea,
     headers: req.body.headers,
+    htmlContent: req.body.htmlContent
   };
 
   var responseCallback = function(err, fileData) {
+    if(downloadOptions.localFileName){
+      console.log(downloadOptions.localFileName);
+      fs.unlink(downloadOptions.localFileName);
+    }
     var payload = err || fileData;
     if(!err){
       var headers = _.extend( responseHeaderDefaults, { 'Content-Type': 'image/png' } );
@@ -138,11 +169,14 @@ app.post("/export/png", function(req, res) {
     res.send(payload);
   };
 
-  if (req.body.width && req.body.height) {
-    generateDownloadData(downloadOptions, nightmare, responseCallback);
-  } else {
-    findElementSize(downloadOptions, nightmare, responseCallback, generateDownloadData);
-  }
+  prepareContentForDownload(downloadOptions, function(){
+    if (req.body.width && req.body.height) {
+      generateDownloadData(downloadOptions, nightmare, responseCallback);
+    } else {
+      findElementSizeAndDownload(downloadOptions, nightmare, responseCallback);
+    }
+  });
+  
 });
 
 var server = app.listen(80, function () {
