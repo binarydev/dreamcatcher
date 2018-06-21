@@ -202,7 +202,7 @@ app.post("/export/png", function(req, res) {
   queue.push({ req, res, type: 'png' });
 });
 
-var server = app.listen(8181, function () {
+var server = app.listen(80, function () {
     var host = server.address().address;
     var port = server.address().port;
 

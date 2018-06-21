@@ -6,13 +6,13 @@ RUN apt-get install --fix-missing -y unzip
 EXPOSE 80
 
 ENV NVM_DIR /root/.nvm
-ENV NODE_VERSION 6.9.2
+ENV NODE_VERSION 8.10.17
 
 COPY server.js package.json start.sh /app/
 
 WORKDIR /app
 
-# INSTALL NVM and NODE 4.4.4 LTS - Since each RUN executes within its own image, 
+# INSTALL NVM and NODE 4.4.4 LTS - Since each RUN executes within its own image,
 # this all needs to happen within the same image to maintain ENV vars
 RUN git clone https://github.com/creationix/nvm.git $NVM_DIR && \
     cd $NVM_DIR && \
