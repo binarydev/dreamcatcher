@@ -180,13 +180,14 @@ function handlePng (req, res, queueCallback) {
   });
 }
 
+var numWorkers = (process.env.NUM_CORES || 4) - 1;
 var queue = async.queue(function (task, callback) {
   if (task.type === 'pdf') {
     handlePdf(task.req, task.res, callback);
   } else {
     handlePng(task.req, task.res, callback);
   }
-}, 2)
+}, numWorkers)
 
 
 app.get("/status", function(req,res){
