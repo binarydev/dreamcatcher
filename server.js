@@ -81,11 +81,11 @@ function prepareContentForDownload(opts, callback){
   }
 }
 
-function findElementSizeAndDownload (downloadOptions, nightmare, responseCallback) {
+function findElementSizeAndDownload (downloadOptions, nightmare, errorCallback, responseCallback) {
   var selector = downloadOptions.selector || "body";
   nightmare
     .goto(downloadOptions.url, downloadOptions.headers)
-    .wait("body")
+    .wait(selector)
     .evaluate(function (selector) {
       document.querySelector('body').style.overflow = 'hidden';
       return {
@@ -99,7 +99,7 @@ function findElementSizeAndDownload (downloadOptions, nightmare, responseCallbac
     }, selector)
     .then(function (dimensions) {
       generateDownloadData(_.extend(downloadOptions, dimensions), nightmare, responseCallback)
-    })
+    }, errorCallback)
 }
 
 function md5(string) {
@@ -107,7 +107,8 @@ function md5(string) {
 }
 
 function handlePdf (req, res, queueCallback) {
-  var nightmare = new Nightmare({ frame: false, useContentSize: true });
+  var waitTimeout = req.body.waitTimeout || 30000;
+  var nightmare = new Nightmare({ frame: false, useContentSize: true, waitTimeout });
 
   var pdfOptions = _.extend(pdfDefaults, req.body.pdfOptions);
 
@@ -143,7 +144,8 @@ function handlePdf (req, res, queueCallback) {
 };
 
 function handlePng (req, res, queueCallback) {
-  var nightmare = new Nightmare({ frame: false, useContentSize: true });
+  var waitTimeout = req.body.waitTimeout || 30000;
+  var nightmare = new Nightmare({ frame: false, useContentSize: true, waitTimeout });
 
   var downloadOptions = {
     type: "png",
@@ -171,11 +173,18 @@ function handlePng (req, res, queueCallback) {
     queueCallback();
   };
 
+  var errorCallback = function (error) {
+    res.type("text/plain");
+    res.status(500);
+    res.send(`An error occurred in the Dreamcatcher service: ${error.message}`);
+    queueCallback();
+  }
+
   prepareContentForDownload(downloadOptions, function () {
     if (req.body.width && req.body.height) {
       generateDownloadData(downloadOptions, nightmare, responseCallback);
     } else {
-      findElementSizeAndDownload(downloadOptions, nightmare, responseCallback);
+      findElementSizeAndDownload(downloadOptions, nightmare, errorCallback, responseCallback);
     }
   });
 }
