@@ -6,7 +6,7 @@ RUN apt-get install --fix-missing -y unzip
 EXPOSE 80
 
 ENV NVM_DIR /root/.nvm
-ENV NODE_VERSION 8.10.17
+ENV NODE_VERSION 8.10.0
 
 COPY server.js package.json start.sh /app/
 
