@@ -7,12 +7,13 @@ var _ = require('underscore');
 var Nightmare = require('nightmare');
 var fs = require('fs');
 var crypto = require('crypto');
+var async = require('async');
 
 var app = express();
 
 var pdfDefaults = {
   marginsType: 0,
-  landscape: true, 
+  landscape: true,
   printBackground: true,
   pageSize: "Letter",
   printSelectionOnly: false
@@ -38,7 +39,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(allowCrossDomain);
 
-function generateDownloadData(opts, nightmare, callback) {  
+function generateDownloadData(opts, nightmare, callback) {
   var dataGenerationChain = nightmare
     .viewport(opts.width, opts.height)
     .goto(opts.url, opts.headers)
@@ -61,7 +62,7 @@ function generateDownloadData(opts, nightmare, callback) {
   if(opts.type === "pdf"){
     dataGenerationChain = dataGenerationChain.pdf(undefined, opts.pdfOptions);
   } else {
-    dataGenerationChain = dataGenerationChain.screenshot(undefined, opts.pngClipArea); 
+    dataGenerationChain = dataGenerationChain.screenshot(undefined, opts.pngClipArea);
   }
   dataGenerationChain.run(callback).end();
 }
@@ -80,11 +81,11 @@ function prepareContentForDownload(opts, callback){
   }
 }
 
-function findElementSizeAndDownload (downloadOptions, nightmare, responseCallback) {
+function findElementSizeAndDownload (downloadOptions, nightmare, errorCallback, responseCallback) {
   var selector = downloadOptions.selector || "body";
   nightmare
     .goto(downloadOptions.url, downloadOptions.headers)
-    .wait("body")
+    .wait(selector)
     .evaluate(function (selector) {
       document.querySelector('body').style.overflow = 'hidden';
       return {
@@ -98,22 +99,18 @@ function findElementSizeAndDownload (downloadOptions, nightmare, responseCallbac
     }, selector)
     .then(function (dimensions) {
       generateDownloadData(_.extend(downloadOptions, dimensions), nightmare, responseCallback)
-    })
+    }, errorCallback)
 }
 
 function md5(string) {
   return crypto.createHash('md5').update(string).digest('hex');
 }
 
-app.get("/status", function(req,res){
-  res.type("text/plain");
-  res.status(200).send("I like Kit-Kat, unless I'm with four or more people.");
-});
+function handlePdf (req, res, queueCallback) {
+  var waitTimeout = req.body.waitTimeout || 30000;
+  var nightmare = new Nightmare({ frame: false, useContentSize: true, waitTimeout });
 
-app.post("/export/pdf", function(req,res) {
-  var nightmare = new Nightmare({ frame: false, useContentSize: true });
-  
-  var pdfOptions = _.extend( pdfDefaults , req.body.pdfOptions );
+  var pdfOptions = _.extend(pdfDefaults, req.body.pdfOptions);
 
   var downloadOptions = {
     type: "pdf",
@@ -127,27 +124,29 @@ app.post("/export/pdf", function(req,res) {
     htmlContent: req.body.htmlContent
   };
 
-  var responseCallback = function(err,fileData) {
-    if(downloadOptions.localFileName){
+  var responseCallback = function (err, fileData) {
+    if (downloadOptions.localFileName) {
       console.log(downloadOptions.localFileName);
       fs.unlink(downloadOptions.localFileName);
     }
     var payload = err || fileData;
-    if(!err){
-      var headers = _.extend( responseHeaderDefaults , { 'Content-Type': 'application/pdf' } );
+    if (!err) {
+      var headers = _.extend(responseHeaderDefaults, { 'Content-Type': 'application/pdf' });
       res.set(headers);
     }
     res.send(payload);
+    queueCallback();
   };
 
-  prepareContentForDownload(downloadOptions, function(){
+  prepareContentForDownload(downloadOptions, function () {
     generateDownloadData(downloadOptions, nightmare, responseCallback);
   });
-});
+};
 
-app.post("/export/png", function(req, res) {
-  var nightmare = new Nightmare({ frame: false, useContentSize: true });
-  
+function handlePng (req, res, queueCallback) {
+  var waitTimeout = req.body.waitTimeout || 30000;
+  var nightmare = new Nightmare({ frame: false, useContentSize: true, waitTimeout });
+
   var downloadOptions = {
     type: "png",
     url: req.body.url,
@@ -160,27 +159,57 @@ app.post("/export/png", function(req, res) {
     htmlContent: req.body.htmlContent
   };
 
-  var responseCallback = function(err, fileData) {
-    if(downloadOptions.localFileName){
+  var responseCallback = function (err, fileData) {
+    if (downloadOptions.localFileName) {
       console.log(downloadOptions.localFileName);
       fs.unlink(downloadOptions.localFileName);
     }
     var payload = err || fileData;
-    if(!err){
-      var headers = _.extend( responseHeaderDefaults, { 'Content-Type': 'image/png' } );
+    if (!err) {
+      var headers = _.extend(responseHeaderDefaults, { 'Content-Type': 'image/png' });
       res.set(headers);
     }
     res.send(payload);
+    queueCallback();
   };
 
-  prepareContentForDownload(downloadOptions, function(){
+  var errorCallback = function (error) {
+    res.type("text/plain");
+    res.status(500);
+    res.send(`An error occurred in the Dreamcatcher service: ${error.message}`);
+    queueCallback();
+  }
+
+  prepareContentForDownload(downloadOptions, function () {
     if (req.body.width && req.body.height) {
       generateDownloadData(downloadOptions, nightmare, responseCallback);
     } else {
-      findElementSizeAndDownload(downloadOptions, nightmare, responseCallback);
+      findElementSizeAndDownload(downloadOptions, nightmare, errorCallback, responseCallback);
     }
   });
-  
+}
+
+var numWorkers = (process.env.NUM_CORES || 4) - 1;
+var queue = async.queue(function (task, callback) {
+  if (task.type === 'pdf') {
+    handlePdf(task.req, task.res, callback);
+  } else {
+    handlePng(task.req, task.res, callback);
+  }
+}, numWorkers)
+
+
+app.get("/status", function(req,res){
+  res.type("text/plain");
+  res.status(200).send("I like Kit-Kat, unless I'm with four or more people.");
+});
+
+app.post("/export/pdf", function(req, res) {
+  queue.push({ req, res, type: 'pdf' });
+});
+
+app.post("/export/png", function(req, res) {
+  queue.push({ req, res, type: 'png' });
 });
 
 var server = app.listen(80, function () {
