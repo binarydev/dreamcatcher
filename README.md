@@ -12,6 +12,9 @@ Includes a Dockerfile for running the microservice in an easy, headless, and iso
 ## Custom Fonts for Rendering
 - The start.sh bash script checks for an environment variable named $FONT_ZIP_URLS. This should be a string variable in your environment with space-separated URLs of zip files containing your custom fonts. The variable can be set as part of the start.sh call (```FONT_ZIP_URLS="http://url1 http://url2" ./start.sh```) or in your local session using the export command. If you are running this microservice in a Docker container, you can set this environment variable during your docker run command (see Docker installation notes below).
 
+## Request Queue
+- To prevent performance bottlenecks, incoming requests to the Dreamcatcher service are enqueued and the number of requests processed concurrently is capped at one less than the value of the ```NUM_CORES``` ENV variable. This variable should be set to the number of CPU cores available on your machine. If ```NUM_CORES``` is not specified it defaults to 4.
+
 # Installation with Docker
 
 ### Step 1: Acquire the image
@@ -30,7 +33,7 @@ sudo docker build -t <local-arbitrary-image-name> .
 * Arguments:
   * **Local arbitrary image name:** Arbitrary name that will be used in step 2 for creating a Docker container
 
-### Step 2: 
+### Step 2:
 
 - Create a New Container With the Image
 ```
@@ -45,6 +48,7 @@ sudo docker run -d --restart=on-failure:3 --shm-size=1G -p <local-machine-port>:
   * **--restart=on-failure:3** If the main process exits with an error code, attempt to restart the container up to 3 times before aborting
   * **--shm-size=1G** Define the amount of shared memory for the container. The Docker default is 64mb, which is too small for rendering PDFs with any reasonable amount of content, since the browser environment renders the PDF into shared memory for generation. We recommend at least 1G (1 gigabyte), but you can tweak this as you see fit for your needs. Alternatively, you can skip this flag and run the container in privileged mode (--privileged) and the start.sh script within it will automatically allocate and mount a 1GB shared memory device
   * **--env FONT_ZIP_URLS="http://url1 http://url2 http://etc"** Set a custom environment variable within the container, which in this case is the FONT_ZIP_URLS variable containing a list of space-delimited URLs for zip files containing fonts that the container will fetch and install within the container. Since container file systems are ephemeral, this font installation process will execute every time the container is started as long as this variable is set to anything except an empty string. The STDOUT of the container will show the current state of font installation during start up.
+  * **--env NUM_CORES={number of CPU cores on your machine}** See note above.
   * **-p** Map a port on the host machine to the container's port 80, where the API server is listening
   * **--name** Give the container a name that you will use when referring to it for management
 
@@ -76,7 +80,7 @@ npm start
 #### Headlessly on a remote server (assuming you have installed Xvfb, and does not apply to macOS)
 You can inspect start.sh in the repo to see how it sets up the virtual frame buffer and starts the server. Check the included Dockerfile to see what packages are required to run headlessly in an Ubuntu 16.04 LTS environment
 ```
-chmod +x start.sh && ./start.sh 
+chmod +x start.sh && ./start.sh
 ```
 
 # Usage
@@ -111,6 +115,7 @@ The Dreamcatcher microservice itself exposes a very simple API with 3 endpoints:
 - **fileName:** STRING - Name of the file as it should appear in the download
 - **selector:** STRING - The CSS selector you want to use for querying the view dimensions
 - **waitFor:** ARRAY(String selector, Integer time in milliseconds, or Function that can be executed repeatedly until it returns true) - Optional Argument, an array of values that defines what browser should wait for before proceeding to generate the PDF and PNG. By using an array, you can chain wait commands (e.g. wait for #my-id, then wait 5 seconds) (default: null)
+- **waitTimeout:** INTEGER - Maximum number of milliseconds to wait for the conditions specified in *waitFor* before returning an error response. Optional, defaults to 30000.
 - **htmlContent** STRING - Optional Argument, any HTML content that you would like to have rendered for export. *NOTE:* By passing in this parameter, any provided value for the URL parameter above will be ignored. (default: null)
 - **clipArea:** OBJECT - Define a specific area of the page to be captured for the PNG. If omitted, the entire visible area is captured
   - **x:** INTEGER
@@ -125,14 +130,14 @@ The Dreamcatcher microservice itself exposes a very simple API with 3 endpoints:
 POST http://localhost:8080/export/png
 Content-Type: application/json
 
-{ 
+{
   "url":"http://google.com",
   "width":1000,
   "height":2000,
   "fileName":"google.png",
   "waitFor":[".last-rendered-item", 500],
   "htmlContent": "<h1>This will cause the URL to be ignored</h1>",
-  "clipArea": { 
+  "clipArea": {
     "x": 100,
     "y": 100,
     "width": 150,
@@ -172,7 +177,7 @@ Content-Type: application/json
 POST http://localhost:8080/export/pdf
 Content-Type: application/json
 
-{ 
+{
   "url":"http://google.com",
   "width":1000,
   "height":2000,
@@ -180,7 +185,7 @@ Content-Type: application/json
   "waitFor":[".last-rendered-item", 500],
   "htmlContent": "<h1>This will cause the URL to be ignored</h1>",
   "pdfOptions": {
-    "landscape": true, 
+    "landscape": true,
     "printBackground": true,
     "pageSize": "Letter",
     "printSelectionOnly": false
@@ -188,10 +193,3 @@ Content-Type: application/json
 }
 ```
 
-**NOTE:** You are responsible for disabling scrollbars through CSS on the page you are rendering. This can be done by placing this style in your `<head>`:
-
-```
-<style>
-  ::-webkit-scrollbar { display: none; }
-</style>
-```
