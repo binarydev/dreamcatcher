@@ -117,6 +117,7 @@ The Dreamcatcher microservice itself exposes a very simple API with 3 endpoints:
 - **waitFor:** ARRAY(String selector, Integer time in milliseconds, or Function that can be executed repeatedly until it returns true) - Optional Argument, an array of values that defines what browser should wait for before proceeding to generate the PDF and PNG. By using an array, you can chain wait commands (e.g. wait for #my-id, then wait 5 seconds) (default: null)
 - **waitTimeout:** INTEGER - Maximum number of milliseconds to wait for the conditions specified in *waitFor* before returning an error response. Optional, defaults to 30000.
 - **htmlContent** STRING - Optional Argument, any HTML content that you would like to have rendered for export. *NOTE:* By passing in this parameter, any provided value for the URL parameter above will be ignored. (default: null)
+- **hideScrollbars** BOOLEAN - Optional Argument, hide scrollbars from the export by setting "overflow: none" on the body DOM element (default: false)
 - **clipArea:** OBJECT - Define a specific area of the page to be captured for the PNG. If omitted, the entire visible area is captured
   - **x:** INTEGER
   - **y:** INTEGER
@@ -137,6 +138,7 @@ Content-Type: application/json
   "fileName":"google.png",
   "waitFor":[".last-rendered-item", 500],
   "htmlContent": "<h1>This will cause the URL to be ignored</h1>",
+  "hideScrollbars": false,
   "clipArea": {
     "x": 100,
     "y": 100,
@@ -164,6 +166,7 @@ Content-Type: application/json
 - **selector:** STRING - The CSS selector you want to use for querying the view dimensions
 - **waitFor:** ARRAY(String selector, Integer time in milliseconds, or Function that can be executed repeatedly until it returns true) - Optional Argument, an array of values that defines what browser should wait for before proceeding to generate the PDF and PNG. By using an array, you can chain wait commands (e.g. wait for #my-id, then wait 5 seconds) (default: null)
 - **htmlContent** STRING - Optional Argument, any HTML content that you would like to have rendered for export. *NOTE:* By passing in this parameter, any provided value for the URL parameter above will be ignored. (default: null)
+- **hideScrollbars** BOOLEAN - Optional Argument, hide scrollbars from the export by setting "overflow: none" on the body DOM element (default: false)
 - **pdfOptions:** OBJECT - Same options as Electron's printToPDF function [found here](https://github.com/electron/electron/blob/v0.35.2/docs/api/web-contents.md#webcontentsprinttopdfoptions-callback)
   - **marginsType:** INTEGER - Optional Argument, specify the type of margins to use (0 - default, 1 - none, 2 - minimum)
   - **landscape:** BOOLEAN - Optional Argument, save PDF in Landscape (true - default) or Portrait (false) orientation
@@ -184,6 +187,7 @@ Content-Type: application/json
   "fileName":"google.pdf",
   "waitFor":[".last-rendered-item", 500],
   "htmlContent": "<h1>This will cause the URL to be ignored</h1>",
+  "hideScrollbars": false,
   "pdfOptions": {
     "landscape": true,
     "printBackground": true,

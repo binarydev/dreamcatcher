@@ -44,9 +44,12 @@ function generateDownloadData(opts, nightmare, callback) {
     .viewport(opts.width, opts.height)
     .goto(opts.url, opts.headers)
     .wait("body")
-    .evaluate(function () {
+
+  if(opts.hideScrollbars){
+    dataGenerationChain = dataGenerationChain.evaluate(function () {
       document.querySelector('body').style.overflow = 'hidden';
     });
+  }
 
   if(opts.waitOptions && opts.waitOptions.length > 0){
     _.each(opts.waitOptions, function(waitForItem){
@@ -121,7 +124,8 @@ function handlePdf (req, res, queueCallback) {
     pdfOptions: pdfOptions,
     waitOptions: req.body.waitFor,
     headers: req.body.headers,
-    htmlContent: req.body.htmlContent
+    htmlContent: req.body.htmlContent,
+    hideScrollbars: req.body.hideScrollbars
   };
 
   var responseCallback = function (err, fileData) {
@@ -156,7 +160,8 @@ function handlePng (req, res, queueCallback) {
     waitOptions: req.body.waitFor,
     pngClipArea: req.body.clipArea,
     headers: req.body.headers,
-    htmlContent: req.body.htmlContent
+    htmlContent: req.body.htmlContent,
+    hideScrollbars: req.body.hideScrollbars
   };
 
   var responseCallback = function (err, fileData) {
