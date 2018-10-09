@@ -91,9 +91,24 @@ function findElementSizeAndDownload (downloadOptions, nightmare, errorCallback, 
     .wait(selector)
     .evaluate(function (selector) {
       document.querySelector('body').style.overflow = 'hidden';
+
+      var width = document.querySelector(selector).offsetWidth
+      var height = document.querySelector(selector).offsetHeight
+
+      if (selector !== 'body') {
+        var selectorEl = document.querySelector(selector)
+        var children = selectorEl.querySelectorAll("*")
+
+        var childWidths = Array.from(children).map(el => el.offsetWidth).filter(num => num)
+        var childHeights = Array.from(children).map(el => el.offsetHeight).filter(num => num)
+
+        var width = Math.max(width, ...childWidths)
+        var height = Math.max(height, ...childHeights)
+      }
+
       return {
-        width: document.querySelector(selector).offsetWidth,
-        height: document.querySelector(selector).offsetHeight,
+        width: width,
+        height: height,
         boundingRect: {
           top: document.querySelector(selector).getBoundingClientRect().top,
           left: document.querySelector(selector).getBoundingClientRect().left
