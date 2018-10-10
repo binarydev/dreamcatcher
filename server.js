@@ -1,240 +1,107 @@
-var express = require('express');
-var path = require('path');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var _ = require('underscore');
-var Nightmare = require('nightmare');
-var fs = require('fs');
-var crypto = require('crypto');
-var async = require('async');
+const express = require("express");
+const logger = require("morgan");
+const cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser");
+const onFinished = require("on-finished");
+const async = require("async");
+const Sentry = require("@sentry/node");
+const uuid = require("uuid/v1");
+const BrowserManager = require("./browserManager");
+const {
+  prepareOptions,
+  prepareContent,
+  capturePdf,
+  capturePng,
+  handleError
+} = require("./helpers");
 
-var app = express();
+const useSentry = !!process.env.SENTRY_DSN;
+if (useSentry) Sentry.init({ dsn: process.env.SENTRY_DSN });
 
-var pdfDefaults = {
-  marginsType: 0,
-  landscape: true,
-  printBackground: true,
-  pageSize: "Letter",
-  printSelectionOnly: false
+const app = express();
+const browserManager = new BrowserManager();
+browserManager.setup();
+
+const allowCrossDomain = (req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
 };
 
-var responseHeaderDefaults = function(fileName){
-  return {
-    'Content-Disposition': 'attachment',
-    'Transfer-Encoding': 'binary'
-  };
-}
-
-var allowCrossDomain = function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
-}
-
-app.use(logger('dev'));
+if (useSentry) app.use(Sentry.Handlers.requestHandler());
+app.use(logger("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(allowCrossDomain);
+if (useSentry) app.use(Sentry.Handlers.errorHandler());
 
-function generateDownloadData(opts, nightmare, callback) {
-  var dataGenerationChain = nightmare
-    .viewport(opts.width, opts.height)
-    .goto(opts.url, opts.headers)
-    .wait("body")
-
-  if(opts.hideScrollbars){
-    dataGenerationChain = dataGenerationChain.evaluate(function () {
-      document.querySelector('body').style.overflow = 'hidden';
-    });
-  }
-
-  if(opts.waitOptions && opts.waitOptions.length > 0){
-    _.each(opts.waitOptions, function(waitForItem){
-      waitVal = parseInt(waitForItem) ? parseInt(waitForItem) : waitForItem;
-      dataGenerationChain = dataGenerationChain.wait(waitVal);
-    });
-  }
-
-  if (opts.boundingRect) {
-    dataGenerationChain.scrollTo(opts.boundingRect.top, opts.boundingRect.left);
-  }
-
-  if(opts.type === "pdf"){
-    dataGenerationChain = dataGenerationChain.pdf(undefined, opts.pdfOptions);
-  } else {
-    dataGenerationChain = dataGenerationChain.screenshot(undefined, opts.pngClipArea);
-  }
-  dataGenerationChain.run(callback).end();
-}
-
-function prepareContentForDownload(opts, callback){
-  if(opts.htmlContent){
-    var htmlContentFilePath = "/tmp/" + md5(opts.htmlContent) + ".html";
-    fs.writeFile(htmlContentFilePath, opts.htmlContent, 'utf8', function(){
-      opts.url = "file://" + htmlContentFilePath;
-      opts.localFileName = htmlContentFilePath;
-      callback && callback();
-    })
-
-  }else{
-    callback && callback();
-  }
-}
-
-function findElementSizeAndDownload (downloadOptions, nightmare, errorCallback, responseCallback) {
-  var selector = downloadOptions.selector || "body";
-  nightmare
-    .goto(downloadOptions.url, downloadOptions.headers)
-    .wait(selector)
-    .evaluate(function (selector) {
-      document.querySelector('body').style.overflow = 'hidden';
-
-      var width = document.querySelector(selector).offsetWidth
-      var height = document.querySelector(selector).offsetHeight
-
-      if (selector !== 'body') {
-        var selectorEl = document.querySelector(selector)
-        var children = selectorEl.querySelectorAll("*")
-
-        var childWidths = Array.from(children).map(el => el.offsetWidth).filter(num => num)
-        var childHeights = Array.from(children).map(el => el.offsetHeight).filter(num => num)
-
-        var width = Math.max(width, ...childWidths)
-        var height = Math.max(height, ...childHeights)
-      }
-
-      return {
-        width: width,
-        height: height,
-        boundingRect: {
-          top: document.querySelector(selector).getBoundingClientRect().top,
-          left: document.querySelector(selector).getBoundingClientRect().left
-        }
-      };
-    }, selector)
-    .then(function (dimensions) {
-      generateDownloadData(_.extend(downloadOptions, dimensions), nightmare, responseCallback)
-    }, errorCallback)
-}
-
-function md5(string) {
-  return crypto.createHash('md5').update(string).digest('hex');
-}
-
-function handlePdf (req, res, queueCallback) {
-  var waitTimeout = req.body.waitTimeout || 30000;
-  var nightmare = new Nightmare({ frame: false, useContentSize: true, waitTimeout });
-
-  var pdfOptions = _.extend(pdfDefaults, req.body.pdfOptions);
-
-  var downloadOptions = {
-    type: "pdf",
-    url: req.body.url,
-    width: req.body.width,
-    height: req.body.height,
-    selector: req.body.selector,
-    pdfOptions: pdfOptions,
-    waitOptions: req.body.waitFor,
-    headers: req.body.headers,
-    htmlContent: req.body.htmlContent,
-    hideScrollbars: req.body.hideScrollbars
-  };
-
-  var responseCallback = function (err, fileData) {
-    if (downloadOptions.localFileName) {
-      console.log(downloadOptions.localFileName);
-      fs.unlink(downloadOptions.localFileName);
-    }
-    var payload = err || fileData;
-    if (!err) {
-      var headers = _.extend(responseHeaderDefaults, { 'Content-Type': 'application/pdf' });
-      res.set(headers);
-    }
-    res.send(payload);
-    queueCallback();
-  };
-
-  prepareContentForDownload(downloadOptions, function () {
-    generateDownloadData(downloadOptions, nightmare, responseCallback);
-  });
+const responseHeaderDefaults = {
+  "Content-Disposition": "attachment",
+  "Transfer-Encoding": "binary"
 };
 
-function handlePng (req, res, queueCallback) {
-  var waitTimeout = req.body.waitTimeout || 30000;
-  var nightmare = new Nightmare({ frame: false, useContentSize: true, waitTimeout });
+const processRequest = async (task, queueCallback) => {
+  let page;
+  try {
+    const requestId = uuid();
+    browserManager.logRequestStart(requestId);
+    onFinished(task.res, () => browserManager.logRequestEnd(requestId));
 
-  var downloadOptions = {
-    type: "png",
-    url: req.body.url,
-    width: req.body.width,
-    height: req.body.height,
-    selector: req.body.selector,
-    waitOptions: req.body.waitFor,
-    pngClipArea: req.body.clipArea,
-    headers: req.body.headers,
-    htmlContent: req.body.htmlContent,
-    hideScrollbars: req.body.hideScrollbars
-  };
+    const options = prepareOptions(task.req.body);
 
-  var responseCallback = function (err, fileData) {
-    if (downloadOptions.localFileName) {
-      console.log(downloadOptions.localFileName);
-      fs.unlink(downloadOptions.localFileName);
-    }
-    var payload = err || fileData;
-    if (!err) {
-      var headers = _.extend(responseHeaderDefaults, { 'Content-Type': 'image/png' });
-      res.set(headers);
-    }
-    res.send(payload);
-    queueCallback();
-  };
+    page = await browserManager.getBrowser().newPage();
+    await page.setExtraHTTPHeaders(options.headers);
 
-  var errorCallback = function (error) {
-    res.type("text/plain");
-    res.status(500);
-    res.send(`An error occurred in the Dreamcatcher service: ${error.message}`);
-    queueCallback();
-  }
+    await prepareContent(page, options);
 
-  prepareContentForDownload(downloadOptions, function () {
-    if (req.body.width && req.body.height) {
-      generateDownloadData(downloadOptions, nightmare, responseCallback);
+    let payload;
+    if (task.type == "pdf") {
+      payload = await capturePdf(page, options);
+      task.res.type("application/pdf");
     } else {
-      findElementSizeAndDownload(downloadOptions, nightmare, errorCallback, responseCallback);
+      payload = await capturePng(page, options);
+      task.res.type("image/png");
     }
-  });
-}
 
-var numWorkers = (process.env.NUM_CORES || 4) - 1;
-var queue = async.queue(function (task, callback) {
-  if (task.type === 'pdf') {
-    handlePdf(task.req, task.res, callback);
-  } else {
-    handlePng(task.req, task.res, callback);
+    task.res.set(responseHeaderDefaults);
+    task.res.send(payload);
+  } catch (e) {
+    if (useSentry) Sentry.captureException(e);
+    handleError(e, task.res, Sentry);
+  } finally {
+    if (page) page.close();
+    queueCallback();
   }
-}, numWorkers)
+};
 
+const numWorkers = process.env.CONCURRENCY || 20;
+const queue = async.queue(
+  (task, callback) => processRequest(task, callback),
+  numWorkers
+);
 
-app.get("/status", function(req,res){
+app.get("/status", function(req, res) {
   res.type("text/plain");
-  res.status(200).send("I like Kit-Kat, unless I'm with four or more people.");
+  res.status(200).send("Dreamcatcher is running.");
 });
 
-app.post("/export/pdf", function(req, res) {
-  queue.push({ req, res, type: 'pdf' });
+app.post("/export/pdf", (req, res) => {
+  queue.push({ req, res, type: "pdf" });
 });
 
-app.post("/export/png", function(req, res) {
-  queue.push({ req, res, type: 'png' });
+app.post("/export/png", (req, res) => {
+  queue.push({ req, res, type: "png" });
 });
 
-var server = app.listen(80, function () {
-    var host = server.address().address;
-    var port = server.address().port;
+const port = process.env.PORT || 8080;
+const server = app.listen(port, () => {
+  const host = server.address().address;
+  const port = server.address().port;
 
-    console.log('Dreamcatcher microservice listening at http://%s:%s', host, port);
+  console.log("Dreamcatcher listening at http://%s:%s", host, port);
 });
