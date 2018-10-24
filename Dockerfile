@@ -1,31 +1,27 @@
-# Use Ubuntu 16.04 LTS server image as the base
-FROM binarydev/docker-ubuntu-with-xvfb:latest
+FROM node:8-slim
 
-RUN apt-get install --fix-missing -y unzip
+# See https://crbug.com/795759
+RUN apt-get update && apt-get install -yq libgconf-2-4
 
-EXPOSE 80
+# Install latest chrome dev package
+# (this is needed for included libs that are necessary dependencies for the version of Chromium bundled with Puppeteer)
+RUN apt-get update && apt-get install -y wget --no-install-recommends \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+    && apt-get update \
+    && apt-get install -y google-chrome-unstable \
+      --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get purge --auto-remove -y curl \
+    && rm -rf /src/*.deb
 
-ENV NVM_DIR /root/.nvm
-ENV NODE_VERSION 8.10.0
+# It's a good idea to use dumb-init to help prevent zombie chrome processes.
+ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
+RUN chmod +x /usr/local/bin/dumb-init
 
-COPY server.js package.json start.sh /app/
-
+COPY server.js browserManager.js helpers.js package.json package-lock.json /app/
+COPY /fonts /usr/share/fonts/
 WORKDIR /app
+RUN npm install
 
-# INSTALL NVM and NODE 4.4.4 LTS - Since each RUN executes within its own image,
-# this all needs to happen within the same image to maintain ENV vars
-RUN git clone https://github.com/creationix/nvm.git $NVM_DIR && \
-    cd $NVM_DIR && \
-    git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin` && \
-    . "$NVM_DIR/nvm.sh" && \
-    nvm install $NODE_VERSION && \
-    echo "export NVM_DIR=\"/root/.nvm\" \n \n [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\"" >> "/root/.bashrc" && \
-    cd /app && \
-    npm install
-
-ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
-
-
-RUN chmod a+x start.sh
-
-CMD ./start.sh
+ENTRYPOINT ["dumb-init", "--", "npm", "start"]

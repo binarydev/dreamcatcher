@@ -1,20 +1,22 @@
 {
   "name": "Dreamcatcher",
-  "description": "Dreamcatcher - PNG/PDF exporter using NightmareJS",
-  "version": "0.0.2",
+  "description": "Dreamcatcher - PNG/PDF exporter using Puppeteer",
+  "version": "0.0.5",
   "private": true,
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+    "@sentry/node": "^4.1.1",
     "async": "^2.6.1",
     "body-parser": "~1.15.1",
     "cookie-parser": "~1.4.3",
     "debug": "~2.3.3",
     "express": "~4.14.0",
+    "lodash": "^4.17.11",
     "morgan": "~1.7.0",
-    "nightmare": "^2.8.1",
-    "path": "^0.12.7",
-    "underscore": "^1.8.3"
+    "on-finished": "^2.3.0",
+    "puppeteer": "^1.9.0",
+    "uuid": "^3.3.2"
   }
 }
