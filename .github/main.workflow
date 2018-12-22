@@ -26,11 +26,11 @@ action "Docker Registry" {
 action "Docker Push" {
   uses = "actions/docker/cli@76ff57a"
   needs = ["Docker Tag"]
-  args = "push build -t binarydev/dreamcatcher:$(git rev-parse --short HEAD)"
+  args = "push binarydev/dreamcatcher:$IMAGE_SHA"
 }
 
 action "Docker Tag" {
   uses = "actions/docker/tag@76ff57a"
   needs = ["Docker Registry"]
-  args = "binarydev/dreamcatcher binarydev/dreamcatcher --no-ref --no-latest"
+  args = "binarydev/dreamcatcher binarydev/dreamcatcher --no-ref --no-latest --env"
 }
