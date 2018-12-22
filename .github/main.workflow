@@ -2,6 +2,7 @@ workflow "Build and deploy docker image on push" {
   on = "push"
   resolves = [
     "Docker Push",
+    "Docker Tag",
   ]
 }
 
@@ -13,7 +14,7 @@ action "Filters for GitHub Actions" {
 action "GitHub Action for Docker" {
   uses = "actions/docker/cli@76ff57a"
   needs = ["Filters for GitHub Actions"]
-  args = "build --rm -t binarydev/dreamcatcher:$(git rev-parse --short HEAD) ."
+  args = "build --rm -t binarydev/dreamcatcher"
 }
 
 action "Docker Registry" {
@@ -24,6 +25,12 @@ action "Docker Registry" {
 
 action "Docker Push" {
   uses = "actions/docker/cli@76ff57a"
-  needs = ["Docker Registry"]
+  needs = ["Docker Tag"]
   args = "push build -t binarydev/dreamcatcher:$(git rev-parse --short HEAD)"
+}
+
+action "Docker Tag" {
+  uses = "actions/docker/tag@76ff57a"
+  needs = ["Docker Registry"]
+  args = "binarydev/dreamcatcher binarydev/dreamcatcher --no-ref --no-latest"
 }
