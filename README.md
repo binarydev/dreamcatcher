@@ -197,3 +197,6 @@ Content-Type: application/json
 }
 ```
 
+## Developer Notes
+
+On push to the master branch, a new Docker image is built and pushed to DockerHub using GitHub Actions.
