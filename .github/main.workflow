@@ -11,16 +11,16 @@ action "Filters for GitHub Actions" {
   args = "branch master"
 }
 
-action "GitHub Action for Docker" {
+action "Docker Build" {
   uses = "actions/docker/cli@76ff57a"
   needs = ["Filters for GitHub Actions"]
-  args = "build --rm -t binarydev/dreamcatcher"
+  args = "build --rm -t binarydev/dreamcatcher ."
 }
 
 action "Docker Registry" {
   uses = "actions/docker/login@76ff57a"
-  needs = ["GitHub Action for Docker"]
   secrets = ["DOCKER_PASSWORD", "DOCKER_USERNAME"]
+  needs = ["Docker Build"]
 }
 
 action "Docker Push" {
