@@ -34,7 +34,7 @@ const allowCrossDomain = (req, res, next) => {
 
 if (useSentry) app.use(Sentry.Handlers.requestHandler());
 app.use(logger("dev"));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '5mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(allowCrossDomain);
