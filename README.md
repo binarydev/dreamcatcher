@@ -1,4 +1,4 @@
-Node-based service providing a lightweight API for generating PNG and PDF representations of a web page, using headless Chrome and [Puppeteer](https://pptr.dev/).
+Node-based service providing a lightweight API for generating JPEG/PNG and PDF representations of a web page, using headless Chrome and [Puppeteer](https://pptr.dev/).
 
 # Installation and Use
 
@@ -15,7 +15,7 @@ The following optional environment variables are available for configuration:
 
 **Troubleshooting Tips**
 - When testing Dreamcatcher locally using Docker and a locally-served target site, be sure to use your machine's external-facing IP address in the `url` parameter (rather than `localhost`).
-- Don't be alarmed if your generated PNG files are twice as large as the requested dimensions. Dreamcatcher sets the `deviceScaleFactor` property of the Chromium viewport to `2`, so as to generate images suitable for high-resolution "retina" displays.
+- Don't be alarmed if your generated image files are twice as large as the requested dimensions. Dreamcatcher sets the `deviceScaleFactor` property of the Chromium viewport to `2`, so as to generate images suitable for high-resolution "retina" displays.
 
 # API
 
@@ -23,7 +23,7 @@ The following optional environment variables are available for configuration:
 
 **Returns:** Status code `200 OK`
 
-### `POST /export/png`
+### `POST /export/image`
 ### `POST /export/pdf`
 
 **Returns:** Binary data
@@ -39,7 +39,9 @@ The following optional environment variables are available for configuration:
 - **waitFor:** ARRAY[String selector OR Integer time in milliseconds] (Default: `[]`) - Array of conditions to wait for before capturing a representation. Conditions will be evaluated sequentially.
 - **waitTimeout:** INTEGER (Default: `30000`) - Maximum number of milliseconds to wait for succesful navigation and for any conditions specified in `waitFor` (non-cumulative) before returning an error response.
 - **waitForIdle:** BOOLEAN (Default: `false`) - Whether to consider navigation successful only once all network connections have been closed for at least 500 ms, rather than once the browser's `load` event has been fired. Useful for capturing single-page applications where the load event may not be a reliable indicator of page readiness.
-- **clipArea:** OBJECT (Default: `{}`; PNG only) - Capture a cropped region of the page:
+- **imageType:** STRING (Default: `png`; Image only) - The type of image you would like to export. Available options are `jpeg` and `png`.
+- **imageQuality:** INTEGER (Default: `100`; Image with type of `jpeg` only) - Available range is 0-100. Only applies when requesting a `jpeg` image.
+- **clipArea:** OBJECT (Default: `{}`; Image only) - Capture a cropped region of the page:
   - **x:** INTEGER
   - **y:** INTEGER
   - **width:** INTEGER (Optional)

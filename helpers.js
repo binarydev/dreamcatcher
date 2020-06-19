@@ -1,4 +1,4 @@
-const { defaultsDeep, isNull, mapValues, pick } = require("lodash");
+const { defaultsDeep, merge, isNull, mapValues, pick } = require("lodash");
 const { eachSeries } = require("async");
 
 const defaultOptions = {
@@ -8,7 +8,9 @@ const defaultOptions = {
     printBackground: true
   },
   waitFor: [],
-  waitTimeout: 30000
+  waitTimeout: 30000,
+  imageType: "png",
+  imageQuality: 100
 };
 
 const prepareOptions = reqBody => {
@@ -81,18 +83,39 @@ const setViewport = async (page, options) => {
   return await page.setViewport(dimensions);
 };
 
-const capturePng = async (page, options) => {
+const captureImage = async (page, options) => {
   await setViewport(page, options);
+
+  // save users that don't RTFM from themselves
+  // puppeteer requires `jpeg` instead of `jpg`
+  if (options.imageType == "jpg"){
+    options.imageType = "jpeg";
+  };
+  
+  let imageOptions = {
+    clip: options.clipArea,
+    type: options.imageType
+  };
+
+  let jpgOptions = {
+    quality: options.imageQuality
+  };
+
+  let nonSelectorOptions = {
+    fullPage: !(options.width && options.height)
+  };
+
+  if (options.imageType == "jpeg"){
+    imageOptions = merge(imageOptions, jpgOptions);    
+  }
 
   if (options.selector) {
     const element = await page.$(options.selector);
-    return await element.screenshot({ clip: options.clipArea });
+    return await element.screenshot(imageOptions);
   }
 
-  return await page.screenshot({
-    clip: options.clipArea,
-    fullPage: !(options.width && options.height)
-  });
+  imageOptions = merge(imageOptions, nonSelectorOptions);
+  return await page.screenshot(imageOptions);
 };
 
 const capturePdf = async (page, options) => {
@@ -110,6 +133,6 @@ module.exports = {
   prepareOptions,
   prepareContent,
   capturePdf,
-  capturePng,
+  captureImage,
   handleError
 };
