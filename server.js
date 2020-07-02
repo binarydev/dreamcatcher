@@ -11,7 +11,7 @@ const {
   prepareOptions,
   prepareContent,
   capturePdf,
-  capturePng,
+  captureImage,
   handleError
 } = require("./helpers");
 
@@ -64,8 +64,12 @@ const processRequest = async (task, queueCallback) => {
       payload = await capturePdf(page, options);
       task.res.type("application/pdf");
     } else {
-      payload = await capturePng(page, options);
-      task.res.type("image/png");
+      payload = await captureImage(page, options);
+      if (options.imageType == "png"){
+        task.res.type("image/png");
+      } else {
+        task.res.type("image/jpeg");
+      }
     }
 
     task.res.set(responseHeaderDefaults);
@@ -94,8 +98,8 @@ app.post("/export/pdf", (req, res) => {
   queue.push({ req, res, type: "pdf" });
 });
 
-app.post("/export/png", (req, res) => {
-  queue.push({ req, res, type: "png" });
+app.post("/export/image", (req, res) => {
+  queue.push({ req, res, type: "image" });
 });
 
 const port = process.env.PORT || 8080;
