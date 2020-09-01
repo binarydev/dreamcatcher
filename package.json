@@ -1,6 +1,6 @@
 {
-  "name": "Dreamcatcher",
-  "description": "Dreamcatcher - PNG/PDF exporter using Puppeteer",
+  "name": "dreamcatcher",
+  "description": "Dreamcatcher - Image/PDF exporter using Puppeteer",
   "version": "0.0.5",
   "private": true,
   "scripts": {
