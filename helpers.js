@@ -34,6 +34,8 @@ const prepareContent = async (page, options) => {
   if (options.htmlContent) {
     await page.setContent(options.htmlContent, gotoOptions);
   } else {
+    console.log(`[${new Date().toISOString()}] Navigating to ${options.url}`);
+
     await page.goto(options.url, gotoOptions);
   }
 
@@ -84,6 +86,8 @@ const setViewport = async (page, options) => {
 };
 
 const captureImage = async (page, options) => {
+  console.log(`[${new Date().toISOString()}] Starting Image capture of ${options.htmlContent ? 'provided HTML' : options.url}`);
+
   await setViewport(page, options);
 
   // save users that don't RTFM from themselves
@@ -119,6 +123,7 @@ const captureImage = async (page, options) => {
 };
 
 const capturePdf = async (page, options) => {
+  console.log(`[${new Date().toISOString()}] Starting PDF capture: ${options.url}`);
   await setViewport(page, options);
   return await page.pdf({ ...options.pdfOptions });
 };
