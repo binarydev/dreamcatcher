@@ -7,9 +7,9 @@ const defaultOptions = {
     printBackground: true
   },
   waitFor: [],
-  waitTimeout: 30000,
+  waitTimeout: 60000,
   imageType: "png",
-  imageQuality: 100
+  imageQuality: 90,
 };
 
 const prepareOptions = reqBody => {
