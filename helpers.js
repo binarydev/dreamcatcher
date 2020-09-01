@@ -1,5 +1,4 @@
 const { defaultsDeep, merge, isNull, mapValues, pick } = require("lodash");
-const { eachSeries } = require("async");
 
 const defaultOptions = {
   headers: {},
@@ -95,7 +94,7 @@ const captureImage = async (page, options) => {
   if (options.imageType == "jpg"){
     options.imageType = "jpeg";
   };
-  
+
   let imageOptions = {
     clip: options.clipArea,
     type: options.imageType
@@ -110,7 +109,7 @@ const captureImage = async (page, options) => {
   };
 
   if (options.imageType == "jpeg"){
-    imageOptions = merge(imageOptions, jpgOptions);    
+    imageOptions = merge(imageOptions, jpgOptions);
   }
 
   if (options.selector) {
