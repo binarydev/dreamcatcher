@@ -3,15 +3,12 @@ FROM node:8-slim
 # See https://crbug.com/795759
 RUN apt-get update && apt-get install -yq libgconf-2-4
 
-# Install latest chrome dev package
-# (this is needed for included libs that are necessary dependencies for the version of Chromium bundled with Puppeteer)
-RUN apt-get update && apt-get install -y wget --no-install-recommends \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get update \
-    && apt-get install -y google-chrome-unstable \
-       libxss1 \
-       libxtst6 \
+# Install dependencies of chromium bundled with puppeteer
+RUN apt-get update \
+    && apt-get install -y wget libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libdrm2 \
+      libexpat1 libgbm1 libgcc1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 \
+       libx11-6 libx11-xcb1 libxcb-dri3-0 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 \
+       libxrender1 libxss1 libxtst6 bash xdg-utils \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get purge --auto-remove -y curl \

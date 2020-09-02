@@ -2,9 +2,17 @@ Node-based service providing a lightweight API for generating JPEG/PNG and PDF r
 
 # Installation and Use
 
-Installation with Docker is recommended. Simply clone this repository, `docker build`, and `docker run`. To install additional fonts in the built image, place them in a top-level `fonts` directory in this repo before building.
+## Docker
+
+Clone this repository, `docker build . -t dreamcatcher`, and `docker run dreamcatcher`.
+
+To install additional fonts in the built image, place them in a top-level `fonts` directory in this repo before building.
+
+## Standalone
 
 To run without Docker, simply `npm install && npm start`. Requires Node `8.12.0` (LTS) or newer.
+
+## Environment Variables
 
 The following optional environment variables are available for configuration:
 
