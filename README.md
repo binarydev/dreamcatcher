@@ -15,7 +15,7 @@ The following optional environment variables are available for configuration:
 
 **Troubleshooting Tips**
 - When testing Dreamcatcher locally using Docker and a locally-served target site, be sure to use your machine's external-facing IP address in the `url` parameter (rather than `localhost`).
-- Don't be alarmed if your generated image files are twice as large as the requested dimensions. Dreamcatcher sets the `deviceScaleFactor` property of the Chromium viewport to `2`, so as to generate images suitable for high-resolution "retina" displays.
+- If your generated image files seem to be twice as large as the requested dimensions, it's because Dreamcatcher sets by default the `deviceScaleFactor` property of the Chromium viewport to `2`, so as to generate images suitable for high-resolution "retina" displays. To override, pass the `scaleFactor` parameter (e.g. `scaleFactor: 1`).
 
 # API
 
@@ -41,6 +41,7 @@ The following optional environment variables are available for configuration:
 - **waitForIdle:** BOOLEAN (Default: `false`) - Whether to consider navigation successful only once all network connections have been closed for at least 500 ms, rather than once the browser's `load` event has been fired. Useful for capturing single-page applications where the load event may not be a reliable indicator of page readiness.
 - **imageType:** STRING (Default: `png`; Image only) - The type of image you would like to export. Available options are `jpeg` and `png`.
 - **imageQuality:** INTEGER (Default: `100`; Image with type of `jpeg` only) - Available range is 0-100. Only applies when requesting a `jpeg` image.
+- **scaleFactor:** INTEGER (Default: `2`) - the device scaling factor for images. By default Dreamcatcher generates images with scale factor 2, suitable for retina / high DPI displays.
 - **clipArea:** OBJECT (Default: `{}`; Image only) - Capture a cropped region of the page:
   - **x:** INTEGER
   - **y:** INTEGER
