@@ -10,6 +10,7 @@ const defaultOptions = {
   waitTimeout: 60000,
   imageType: "png",
   imageQuality: 90,
+  scaleFactor: 2,
 };
 
 const prepareOptions = reqBody => {
@@ -80,7 +81,7 @@ const setViewport = async (page, options) => {
     dimensions = await calculateDimensions(page, options);
   }
 
-  Object.assign(dimensions, { deviceScaleFactor: 2 });
+  Object.assign(dimensions, { deviceScaleFactor: options.scaleFactor});
   return await page.setViewport(dimensions);
 };
 
