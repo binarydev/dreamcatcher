@@ -1,5 +1,6 @@
 const express = require("express");
 const logger = require("morgan");
+const Url = require("url");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const onFinished = require("on-finished");
@@ -12,7 +13,8 @@ const {
   prepareContent,
   capturePdf,
   captureImage,
-  handleError
+  handleError,
+  isPrivateNetwork,
 } = require("./helpers");
 
 const useSentry = !!process.env.SENTRY_DSN;
@@ -57,6 +59,21 @@ const processRequest = async (task, queueCallback) => {
     const options = prepareOptions(task.req.body);
 
     page = await browserManager.getBrowser().newPage();
+
+    if(process.env.ALLOW_PRIVATE_NETWORKS !== 'true') {
+      await page.setRequestInterception(true);
+      page.on('request', interceptedRequest => {
+        const url = interceptedRequest.url();
+        const hostname = Url.parse(url).hostname;
+        if (isPrivateNetwork(hostname)) {
+          console.log(`Warning: Aborting request to ${url}`);
+          interceptedRequest.abort();
+        } else {
+          interceptedRequest.continue();
+        }
+      });
+    }
+
     await page.setExtraHTTPHeaders(options.headers);
 
     await prepareContent(page, options);

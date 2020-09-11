@@ -134,10 +134,14 @@ const handleError = (error, res) => {
   res.send(error.message);
 };
 
+const isPrivateNetwork = input =>
+  input.match(/(^127\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)|(^169\.254\.)/);
+
 module.exports = {
   prepareOptions,
   prepareContent,
   capturePdf,
   captureImage,
-  handleError
+  handleError,
+  isPrivateNetwork,
 };
