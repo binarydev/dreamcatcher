@@ -1,4 +1,4 @@
-FROM node:8-slim
+FROM node:12-slim
 
 # See https://crbug.com/795759
 RUN apt-get update && apt-get install -yq libgconf-2-4
@@ -11,7 +11,7 @@ RUN apt-get update \
        libxrender1 libxss1 libxtst6 bash xdg-utils \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
-    && apt-get purge --auto-remove -y curl \
+    && apt-get clean \
     && rm -rf /src/*.deb
 
 # It's a good idea to use dumb-init to help prevent zombie chrome processes.
