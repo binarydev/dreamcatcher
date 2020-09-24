@@ -51,6 +51,7 @@ The following optional environment variables are available for configuration:
 - **imageType:** STRING (Default: `png`; Image only) - The type of image you would like to export. Available options are `jpeg` and `png`.
 - **imageQuality:** INTEGER (Default: `100`; Image with type of `jpeg` only) - Available range is 0-100. Only applies when requesting a `jpeg` image.
 - **scaleFactor:** INTEGER (Default: `2`) - the device scaling factor for images. By default Dreamcatcher generates images with scale factor 2, suitable for retina / high DPI displays.
+- **emulateMediaType:** ?STRING (Default: `undefined`) - if this is set, it will be passed to Puppeteer before printing. Valid values: `screen`, `print`.
 - **clipArea:** OBJECT (Default: `{}`; Image only) - Capture a cropped region of the page:
   - **x:** INTEGER
   - **y:** INTEGER

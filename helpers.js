@@ -125,6 +125,9 @@ const captureImage = async (page, options) => {
 const capturePdf = async (page, options) => {
   console.log(`[${new Date().toISOString()}] Starting PDF capture: ${options.url}`);
   await setViewport(page, options);
+  if(options.emulateMediaType) {
+    await page.emulateMediaType(options.emulateMediaType);
+  }
   return await page.pdf({ ...options.pdfOptions });
 };
 
