@@ -3,3 +3,4 @@ fonts/
 !/fonts/.keep
 profileParams.txt
 profile.sh
+.vscode/launch.json

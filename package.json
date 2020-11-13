@@ -4,7 +4,8 @@
   "version": "0.0.5",
   "private": true,
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "debug": "node --nolazy server.js"
   },
   "dependencies": {
     "@sentry/node": "^4.1.1",
