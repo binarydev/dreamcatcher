@@ -4,8 +4,10 @@
   "version": "0.0.5",
   "private": true,
   "scripts": {
-    "start": "node server.js",
-    "debug": "node --nolazy server.js"
+    "start": "node start.js",
+    "debug": "node --nolazy server.js",
+    "test": "./node_modules/.bin/mocha",
+    "test-with-coverage": "./node_modules/.bin/nyc --reporter=text --reporter=html mocha"
   },
   "dependencies": {
     "@sentry/node": "^4.1.1",
@@ -21,5 +23,10 @@
     "url": "^0.11.0",
     "uuid": "^3.3.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
+    "mocha": "^8.2.1",
+    "nyc": "^15.1.0"
+  }
 }
