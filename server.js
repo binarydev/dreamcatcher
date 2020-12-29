@@ -22,7 +22,9 @@ if (useSentry) Sentry.init({ dsn: process.env.SENTRY_DSN });
 
 const app = express();
 const browserManager = new BrowserManager();
-browserManager.setup();
+(async () => {
+  await browserManager.setup();
+})();
 
 const allowCrossDomain = (req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -46,7 +48,6 @@ if (useSentry) app.use(Sentry.Handlers.errorHandler());
 
 const responseHeaderDefaults = {
   "Content-Disposition": "attachment",
-  "Transfer-Encoding": "binary"
 };
 
 const processRequest = async (task, queueCallback) => {
@@ -58,7 +59,8 @@ const processRequest = async (task, queueCallback) => {
 
     const options = prepareOptions(task.req.body);
 
-    page = await browserManager.getBrowser().newPage();
+    browser = browserManager.getBrowser();
+    page = await browser.newPage();
 
     if(process.env.ALLOW_PRIVATE_NETWORKS !== 'true') {
       await page.setRequestInterception(true);
@@ -121,10 +123,4 @@ app.post("/export/image", (req, res) => {
   queue.push({ req, res, type: "image" });
 });
 
-const port = process.env.PORT || 8080;
-const server = app.listen(port, () => {
-  const host = server.address().address;
-  const port = server.address().port;
-
-  console.log("Dreamcatcher listening at http://%s:%s", host, port);
-});
+module.exports = app;

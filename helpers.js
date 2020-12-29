@@ -45,6 +45,7 @@ const prepareContent = async (page, options) => {
 const calculateDimensions = async (page, options) => {
   const selector = options.selector || "body";
 
+  /* istanbul ignore next */
   const dimensions = await page.$$eval(
     `${selector}, ${selector} *`,
     elements => {

@@ -4,3 +4,5 @@ fonts/
 profileParams.txt
 profile.sh
 .vscode/launch.json
+.nyc_output
+coverage
