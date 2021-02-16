@@ -43,16 +43,18 @@ const prepareContent = async (page, options) => {
 };
 
 const calculateDimensions = async (page, options) => {
-  const selector = options.selector || "body";
+  const selector = options.viewportSelector || options.selector || "body";
 
   /* istanbul ignore next */
   const dimensions = await page.$$eval(
     `${selector}, ${selector} *`,
     elements => {
-      return elements.map(el => ({
+      return elements.map(el => {
+        return ({
         width: el.offsetWidth,
         height: el.offsetHeight
-      }));
+        })
+      });
     }
   );
 
@@ -76,13 +78,19 @@ const calculateDimensions = async (page, options) => {
 
 const setViewport = async (page, options) => {
   let dimensions;
+
   if (options.width && options.height) {
     dimensions = pick(options, ["width", "height"]);
   } else {
-    dimensions = await calculateDimensions(page, options);
+    calculatedDimensions = await calculateDimensions(page, options);
+    dimensions = {
+      width: options.width || calculatedDimensions.width,
+      height: options.height || calculatedDimensions.height,
+    }
   }
 
-  Object.assign(dimensions, { deviceScaleFactor: options.scaleFactor});
+  Object.assign(dimensions, { deviceScaleFactor: options.scaleFactor });
+
   return await page.setViewport(dimensions);
 };
 
@@ -99,7 +107,7 @@ const captureImage = async (page, options) => {
 
   let imageOptions = {
     clip: options.clipArea,
-    type: options.imageType
+    type: options.imageType,
   };
 
   let jpgOptions = {
@@ -116,6 +124,11 @@ const captureImage = async (page, options) => {
 
   if (options.selector) {
     const element = await page.$(options.selector);
+
+    if (!options.clipArea) {
+      imageOptions.clip = await element.boundingBox();
+    }
+
     return await element.screenshot(imageOptions);
   }
 
