@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "start": "node start.js",
-    "debug": "node --nolazy server.js",
+    "debug": "node --nolazy start.js",
+    "inspect": "node --nolazy --inspect start.js",
     "test": "./node_modules/.bin/mocha",
     "test-with-coverage": "./node_modules/.bin/nyc --reporter=text --reporter=html mocha"
   },
