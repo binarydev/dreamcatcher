@@ -20,7 +20,7 @@
     "lodash": "^4.17.21",
     "morgan": "^1.10.0",
     "on-finished": "^2.3.0",
-    "puppeteer": "^7.0.0",
+    "puppeteer": "^10.0.0",
     "url": "^0.11.0",
     "uuid": "^3.3.2"
   },

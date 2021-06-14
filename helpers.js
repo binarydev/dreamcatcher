@@ -22,8 +22,14 @@ const prepareOptions = reqBody => {
 const wait = async (page, options) => {
   for (let i = 0; i < options.waitFor.length; i++) {
     const condition = options.waitFor[i];
-    const value = parseInt(condition) || condition;
-    await page.waitFor(value, { timeout: options.waitTimeout });
+
+    // Uses either waitForTimeout or waitForSelector because options.waitFor[i]
+    // could only either be a String selector OR Integer time in milliseconds
+    if(parseInt(condition)){
+      await page.waitForTimeout(parseInt(condition));
+    }else{
+      await page.waitForSelector(condition, { timeout: options.waitTimeout });
+    }
   }
 };
 
