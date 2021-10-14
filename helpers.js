@@ -13,6 +13,11 @@ const defaultOptions = {
   scaleFactor: 2,
 };
 
+const log = (message) => {
+  if (process.env.MONITOR) return;
+  console.log(`[${new Date().toISOString()}] ${message}`);
+};
+
 const prepareOptions = reqBody => {
   const body = mapValues(reqBody, val => (isNull(val) ? undefined : val));
   const options = defaultsDeep(body, defaultOptions);
@@ -40,13 +45,23 @@ const prepareContent = async (page, options) => {
   if (options.htmlContent) {
     await page.setContent(options.htmlContent, gotoOptions);
   } else {
-    console.log(`[${new Date().toISOString()}] Navigating to ${options.url}`);
-
+    log(`Navigating to ${options.url}`);
     await page.goto(options.url, gotoOptions);
   }
 
-  await wait(page, options);
+  return await wait(page, options);
 };
+
+const measureContent = async (page) => {
+  const navigation = await page.evaluate(
+    'JSON.stringify(window.performance.getEntriesByType("navigation"))'
+  );
+  const resource = await page.evaluate(
+    'JSON.stringify(window.performance.getEntriesByType("resource"))'
+  );
+
+  return {navigation, resource};
+}
 
 const calculateDimensions = async (page, options) => {
   const selector = options.viewportSelector || options.selector || "body";
@@ -101,7 +116,7 @@ const setViewport = async (page, options) => {
 };
 
 const captureImage = async (page, options) => {
-  console.log(`[${new Date().toISOString()}] Starting Image capture of ${options.htmlContent ? 'provided HTML' : options.url}`);
+  log(`Starting Image capture of ${options.htmlContent ? 'provided HTML' : options.url}`);
 
   await setViewport(page, options);
 
@@ -143,7 +158,7 @@ const captureImage = async (page, options) => {
 };
 
 const capturePdf = async (page, options) => {
-  console.log(`[${new Date().toISOString()}] Starting PDF capture: ${options.url}`);
+  log(`Starting PDF capture: ${options.url}`);
   await setViewport(page, options);
   if(options.emulateMediaType) {
     await page.emulateMediaType(options.emulateMediaType);
@@ -161,6 +176,8 @@ const isPrivateNetwork = input =>
   input.match(/(^127\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)|(^169\.254\.)/);
 
 module.exports = {
+  log,
+  measureContent,
   prepareOptions,
   prepareContent,
   capturePdf,
