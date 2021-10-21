@@ -71,6 +71,13 @@ const app = express();
     concurrency: Cluster.CONCURRENCY_CONTEXT,
     maxConcurrency: process.env.CONCURRENCY || 15,
     monitor: process.env.MONITOR ? true : false,
+    puppeteerOptions: {
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage"
+      ],
+    },
   });
 
   if (useSentry) app.use(Sentry.Handlers.requestHandler());
