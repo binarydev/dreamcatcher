@@ -69,7 +69,7 @@ const app = express();
 (async () => {
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
-    maxConcurrency: process.env.CONCURRENCY || 15,
+    maxConcurrency: process.env.CONCURRENCY ? parseInt(process.env.CONCURRENCY) : 15,
     monitor: process.env.MONITOR ? true : false,
     puppeteerOptions: {
       args: [
